@@ -44,8 +44,10 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.datastore)
+            implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.datetime)
             implementation(libs.koin.core)
+            implementation(libs.kotlinx.collections.immutable)
         }
     }
 }
