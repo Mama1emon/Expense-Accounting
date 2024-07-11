@@ -1,5 +1,7 @@
 package domain
 
+import kotlinx.coroutines.flow.Flow
+
 interface TransactionsRepository {
 
     suspend fun saveTransaction(transaction: Transaction)
@@ -9,4 +11,6 @@ interface TransactionsRepository {
         startTimestamp: Long,
         endTimestamp: Long
     ): List<Transaction>
+
+    fun getAllTransactions(): Flow<List<Transaction>>
 }

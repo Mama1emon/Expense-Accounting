@@ -6,7 +6,9 @@ import data.converters.ExpenseCategoryConverter
 import domain.ExpenseCategory
 import domain.Transaction
 import domain.TransactionsRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import com.mama1emon.exac.Transaction as ProtoTransaction
 
 class TransactionsRepositoryImpl(
@@ -46,5 +48,19 @@ class TransactionsRepositoryImpl(
                     timestamp = protoTransaction.timestamp,
                 )
             }
+    }
+
+    override fun getAllTransactions(): Flow<List<Transaction>> {
+        return transactionsStore.data.map {
+            it.transactions.map { protoTransaction ->
+                Transaction(
+                    id = protoTransaction.id,
+                    name = protoTransaction.name,
+                    expenseCategory = ExpenseCategoryConverter.convert(protoTransaction.expense_category),
+                    amount = protoTransaction.amount,
+                    timestamp = protoTransaction.timestamp,
+                )
+            }
+        }
     }
 }
