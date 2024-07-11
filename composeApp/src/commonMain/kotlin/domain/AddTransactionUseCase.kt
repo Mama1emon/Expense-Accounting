@@ -6,11 +6,11 @@ import utils.randomUUID
 /**
  * @author Andrew Khokhlov on 10/07/2024
  */
-class AddTransactionUseCase(private val repository: TransactionRepository) {
+class AddTransactionUseCase(private val repository: TransactionsRepository) {
 
     suspend operator fun invoke(
         name: String,
-        expenseCategory: ExpenseCategory?,
+        expenseCategory: ExpenseCategory,
         amount: Double,
     ) {
         val transaction = Transaction(

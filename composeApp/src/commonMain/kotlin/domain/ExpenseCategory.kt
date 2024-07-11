@@ -29,4 +29,6 @@ sealed interface ExpenseCategory {
     data object Food : ExpenseCategory
 
     data object Other : ExpenseCategory
+
+    data object Unspecified : ExpenseCategory
 }

@@ -1,6 +1,6 @@
 package domain
 
-interface TransactionRepository {
+interface TransactionsRepository {
 
     suspend fun saveTransaction(transaction: Transaction)
 

@@ -5,8 +5,8 @@ package domain
  */
 data class Transaction(
     val id: String,
-    val name: String?,
-    val expenseCategory: ExpenseCategory?,
+    val name: String,
+    val expenseCategory: ExpenseCategory,
     val amount: Double,
     val timestamp: Long,
 )

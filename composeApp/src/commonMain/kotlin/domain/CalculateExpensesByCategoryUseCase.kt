@@ -4,7 +4,7 @@ package domain
  * @author Andrew Khokhlov on 10/07/2024
  */
 class CalculateExpensesByCategoryUseCase(
-    private val transactionRepository: TransactionRepository,
+    private val transactionsRepository: TransactionsRepository,
 ) {
 
     suspend operator fun invoke(
@@ -12,7 +12,7 @@ class CalculateExpensesByCategoryUseCase(
         startTimestamp: Long,
         endTimestamp: Long,
     ): Double {
-        return transactionRepository
+        return transactionsRepository
             .getCategoryTransactions(category, startTimestamp, endTimestamp)
             .map(Transaction::amount)
             .sum()
