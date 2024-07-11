@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package com.mama1emon.exac;
+
+option java_multiple_files = true;
+
+enum ExpenseCategory {
+  EXPENSE_CATEGORY_UNSPECIFIED = 0;
+  HOUSING = 1;
+  TRANSPORT = 2;
+  CELLULAR = 3;
+  SPORT = 4;
+  HEALTH_AND_CARE = 5;
+  HOUSEHOLD = 6;
+  CLOTHING = 7;
+  ENTERTAINMENT = 8;
+  GIFTS = 9;
+  DOCUMENTS = 10;
+  TRAVEL = 11;
+  FOOD_DELIVERY = 12;
+  FOOD = 13;
+  OTHER = 14;
+}
+
+message Transactions {
+  repeated Transaction transactions = 1;
+}
+
+message Transaction {
+  string id = 1;
+  string name = 2;
+  ExpenseCategory expense_category = 3;
+  double amount = 4;
+  int64 timestamp = 5;
+}

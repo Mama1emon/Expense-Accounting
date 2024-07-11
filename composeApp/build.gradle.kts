@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.wire)
 }
 
 kotlin {
@@ -40,8 +41,16 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(libs.androidx.datastore)
             implementation(libs.datetime)
         }
+    }
+}
+
+wire {
+    kotlin {}
+    sourcePath {
+        srcDir("src/commonMain/proto")
     }
 }
 
