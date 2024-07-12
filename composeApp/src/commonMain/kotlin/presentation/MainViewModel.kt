@@ -3,10 +3,14 @@ package presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.AddTransactionUseCase
-import domain.CalculateExpensesByCategoryUseCase
 import domain.ExpenseCategory
+import domain.GetAllTransactionsUseCase
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import presentation.state.MainScreenState
 
@@ -15,10 +19,15 @@ import presentation.state.MainScreenState
  */
 class MainViewModel(
     private val addTransactionUseCase: AddTransactionUseCase,
-    private val calculateExpensesByCategoryUseCase: CalculateExpensesByCategoryUseCase,
+    private val getAllTransactionsUseCase: GetAllTransactionsUseCase,
 ) : ViewModel() {
 
-    private val uiState = MutableStateFlow(value = getInitState())
+    private val _uiState = MutableStateFlow(value = getInitState())
+    val uiState = _uiState.asStateFlow()
+
+    init {
+        subscribeOnTransactionsUpdate()
+    }
 
     private fun getInitState(): MainScreenState {
         return MainScreenState(
@@ -41,6 +50,14 @@ class MainViewModel(
             ),
             onAddTransactionClick = ::addTransaction
         )
+    }
+
+    private fun subscribeOnTransactionsUpdate() {
+        getAllTransactionsUseCase()
+            .onEach {
+                _uiState.value = _uiState.value.copy(transactions = it.toImmutableList())
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun addTransaction(name: String, expenseCategory: ExpenseCategory, amount: Double) {

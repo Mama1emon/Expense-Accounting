@@ -6,11 +6,13 @@ import domain.AddTransactionUseCase
 import domain.CalculateExpensesByCategoryUseCase
 import domain.GetAllTransactionsUseCase
 import domain.TransactionsRepository
+import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import presentation.MainViewModel
 
 object Modules {
 
@@ -24,12 +26,17 @@ object Modules {
         singleOf(::CalculateExpensesByCategoryUseCase)
         singleOf(::GetAllTransactionsUseCase)
     }
+
+    val presentationModule = module {
+        viewModelOf(::MainViewModel)
+    }
 }
 
 fun initKoin(
 ): KoinApplication = startKoin {
     modules(
         Modules.dataModule,
-        Modules.domainModule
+        Modules.domainModule,
+        Modules.presentationModule
     )
 }
