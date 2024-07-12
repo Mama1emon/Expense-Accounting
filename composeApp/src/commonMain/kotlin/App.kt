@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,13 +48,13 @@ fun App() {
             topBar = {
                 TopAppBar(
                     title = { Text(text = "Expense Accounting") },
-                    actions = {
-                        IconButton(onClick = { isDialogExpanded = true }) {
-                            Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                        }
-                    },
                 )
             },
+            floatingActionButton = {
+                FloatingActionButton(onClick = { isDialogExpanded = true }) {
+                    Icon(imageVector = Icons.Outlined.Add, contentDescription = null)
+                }
+            }
         ) { paddingValues ->
             LazyColumn(
                 modifier = Modifier.padding(paddingValues),
