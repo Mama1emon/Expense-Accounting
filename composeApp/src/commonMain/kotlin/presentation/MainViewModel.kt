@@ -9,6 +9,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -24,6 +25,8 @@ class MainViewModel(
 
     private val _uiState = MutableStateFlow(value = getInitState())
     val uiState = _uiState.asStateFlow()
+
+    private val filterCategory = MutableStateFlow<ExpenseCategory?>(value = null)
 
     init {
         subscribeOnTransactionsUpdate()
@@ -48,12 +51,23 @@ class MainViewModel(
                 ExpenseCategory.Food,
                 ExpenseCategory.Other,
             ),
-            onAddTransactionClick = ::addTransaction
+            onAddTransactionClick = ::addTransaction,
+            onFilterByCategoryClick = ::filterByCategory
         )
     }
 
     private fun subscribeOnTransactionsUpdate() {
-        getAllTransactionsUseCase()
+        combine(
+            flow = getAllTransactionsUseCase(),
+            flow2 = filterCategory
+        ) { transactions, filterCategory ->
+            if (filterCategory == null) {
+                transactions
+            } else {
+                transactions.filter { it.expenseCategory == filterCategory }
+            }
+
+        }
             .onEach {
                 _uiState.value = _uiState.value.copy(transactions = it.toImmutableList())
             }
@@ -64,5 +78,9 @@ class MainViewModel(
         viewModelScope.launch {
             addTransactionUseCase(name, expenseCategory, amount.toDouble())
         }
+    }
+
+    private fun filterByCategory(category: ExpenseCategory?) {
+        filterCategory.value = category
     }
 }

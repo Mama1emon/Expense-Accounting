@@ -13,10 +13,10 @@ import androidx.compose.ui.unit.dp
 import domain.Transaction
 
 @Composable
-fun TransactionItem(value: Transaction) {
+fun TransactionItem(value: Transaction, modifier: Modifier) {
     Card {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
