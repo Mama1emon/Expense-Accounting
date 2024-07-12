@@ -60,9 +60,9 @@ class MainViewModel(
             .launchIn(viewModelScope)
     }
 
-    private fun addTransaction(name: String, expenseCategory: ExpenseCategory, amount: Double) {
+    private fun addTransaction(name: String, expenseCategory: ExpenseCategory, amount: String) {
         viewModelScope.launch {
-            addTransactionUseCase(name, expenseCategory, amount)
+            addTransactionUseCase(name, expenseCategory, amount.toDouble())
         }
     }
 }

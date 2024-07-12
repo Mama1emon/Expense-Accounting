@@ -10,5 +10,5 @@ import kotlinx.collections.immutable.ImmutableList
 data class MainScreenState(
     val transactions: ImmutableList<Transaction>,
     val availableCategories: ImmutableList<ExpenseCategory>,
-    val onAddTransactionClick: (String, ExpenseCategory, Double) -> Unit,
+    val onAddTransactionClick: (String, ExpenseCategory, String) -> Unit,
 )
