@@ -73,7 +73,7 @@ class MainViewModel(
         }
             .onEach {
                 _uiState.value = _uiState.value.copy(
-                    transactions = it.first.toImmutableList(),
+                    transactions = it.first.reversed().toImmutableList(),
                     total = getCalculateExpensesUseCase(
                         startTimestamp = Clock.System.now()
                             .toEpochMilliseconds() - 24 * 60 * 60 * 1000,

@@ -14,9 +14,9 @@ import domain.Transaction
 
 @Composable
 fun TransactionItem(value: Transaction, modifier: Modifier) {
-    Card {
+    Card(modifier = modifier) {
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
