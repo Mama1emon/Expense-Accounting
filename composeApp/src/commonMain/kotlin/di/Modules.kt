@@ -3,7 +3,7 @@ package di
 import data.TransactionsRepositoryImpl
 import data.local.getTransactionsStore
 import domain.AddTransactionUseCase
-import domain.CalculateExpensesByCategoryUseCase
+import domain.CalculateExpensesUseCase
 import domain.GetAllTransactionsUseCase
 import domain.TransactionsRepository
 import org.koin.compose.viewmodel.dsl.viewModelOf
@@ -23,7 +23,7 @@ object Modules {
 
     val domainModule = module {
         singleOf(::AddTransactionUseCase)
-        singleOf(::CalculateExpensesByCategoryUseCase)
+        singleOf(::CalculateExpensesUseCase)
         singleOf(::GetAllTransactionsUseCase)
     }
 

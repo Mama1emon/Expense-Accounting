@@ -3,12 +3,12 @@ package domain
 /**
  * @author Andrew Khokhlov on 10/07/2024
  */
-class CalculateExpensesByCategoryUseCase(
+class CalculateExpensesUseCase(
     private val transactionsRepository: TransactionsRepository,
 ) {
 
     suspend operator fun invoke(
-        category: ExpenseCategory,
+        category: ExpenseCategory?,
         startTimestamp: Long,
         endTimestamp: Long,
     ): Double {

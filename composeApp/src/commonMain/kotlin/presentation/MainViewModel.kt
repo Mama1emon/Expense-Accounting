@@ -3,6 +3,7 @@ package presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.AddTransactionUseCase
+import domain.CalculateExpensesUseCase
 import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
 import kotlinx.collections.immutable.persistentListOf
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import presentation.state.MainScreenState
 
 /**
@@ -21,6 +23,7 @@ import presentation.state.MainScreenState
 class MainViewModel(
     private val addTransactionUseCase: AddTransactionUseCase,
     private val getAllTransactionsUseCase: GetAllTransactionsUseCase,
+    private val getCalculateExpensesUseCase: CalculateExpensesUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(value = getInitState())
@@ -51,6 +54,7 @@ class MainViewModel(
                 ExpenseCategory.Food,
                 ExpenseCategory.Other,
             ),
+            total = "0",
             onAddTransactionClick = ::addTransaction,
             onFilterByCategoryClick = ::filterByCategory
         )
@@ -65,11 +69,18 @@ class MainViewModel(
                 transactions
             } else {
                 transactions.filter { it.expenseCategory == filterCategory }
-            }
-
+            } to filterCategory
         }
             .onEach {
-                _uiState.value = _uiState.value.copy(transactions = it.toImmutableList())
+                _uiState.value = _uiState.value.copy(
+                    transactions = it.first.toImmutableList(),
+                    total = getCalculateExpensesUseCase(
+                        startTimestamp = Clock.System.now()
+                            .toEpochMilliseconds() - 24 * 60 * 60 * 1000,
+                        endTimestamp = Clock.System.now().toEpochMilliseconds(),
+                        category = it.second,
+                    ).toString()
+                )
             }
             .launchIn(viewModelScope)
     }

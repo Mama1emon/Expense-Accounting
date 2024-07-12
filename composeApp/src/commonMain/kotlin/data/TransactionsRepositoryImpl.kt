@@ -28,16 +28,21 @@ class TransactionsRepositoryImpl(
     }
 
     override suspend fun getCategoryTransactions(
-        category: ExpenseCategory,
+        category: ExpenseCategory?,
         startTimestamp: Long,
         endTimestamp: Long
     ): List<Transaction> {
-        val protoCategory = ExpenseCategoryConverter.convert(category)
+        val protoCategory = category?.let { ExpenseCategoryConverter.convert(it) }
         return transactionsStore.data.firstOrNull()
             ?.transactions.orEmpty()
             .filter {
-                it.expense_category == protoCategory &&
-                    it.timestamp in startTimestamp..endTimestamp
+                val isSelectedCategory = if (protoCategory == null) {
+                    true
+                } else {
+                    it.expense_category == protoCategory
+                }
+
+                isSelectedCategory && it.timestamp in startTimestamp..endTimestamp
             }
             .map { protoTransaction ->
                 Transaction(
