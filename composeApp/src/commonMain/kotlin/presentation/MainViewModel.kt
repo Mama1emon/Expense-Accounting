@@ -6,8 +6,11 @@ import domain.AddTransactionUseCase
 import domain.CalculateExpensesUseCase
 import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
+import domain.Transaction
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -54,7 +57,10 @@ class MainViewModel(
                 ExpenseCategory.Food,
                 ExpenseCategory.Other,
             ),
-            total = "0",
+            summaryState = MainScreenState.SummaryState(
+                total = "0",
+                totalCategories = persistentMapOf()
+            ),
             onAddTransactionClick = ::addTransaction,
             onFilterByCategoryClick = ::filterByCategory
         )
@@ -72,14 +78,32 @@ class MainViewModel(
             } to filterCategory
         }
             .onEach {
+                val (transactions, filterCategory) = it
+
                 _uiState.value = _uiState.value.copy(
-                    transactions = it.first.reversed().toImmutableList(),
-                    total = getCalculateExpensesUseCase(
-                        startTimestamp = Clock.System.now()
-                            .toEpochMilliseconds() - 24 * 60 * 60 * 1000,
-                        endTimestamp = Clock.System.now().toEpochMilliseconds(),
-                        category = it.second,
-                    ).toString()
+                    transactions = transactions.reversed().toImmutableList(),
+                    summaryState = MainScreenState.SummaryState(
+                        total = getCalculateExpensesUseCase(
+                            startTimestamp = Clock.System.now()
+                                .toEpochMilliseconds() - 24 * 60 * 60 * 1000,
+                            endTimestamp = Clock.System.now().toEpochMilliseconds(),
+                            category = filterCategory,
+                        ).toString(),
+                        totalCategories = if (filterCategory == null) {
+                            transactions.map(Transaction::expenseCategory)
+                                .associateWith {
+                                    getCalculateExpensesUseCase(
+                                        startTimestamp = Clock.System.now()
+                                            .toEpochMilliseconds() - 24 * 60 * 60 * 1000,
+                                        endTimestamp = Clock.System.now().toEpochMilliseconds(),
+                                        category = it
+                                    ).toString()
+                                }
+                                .toImmutableMap()
+                        } else {
+                            persistentMapOf()
+                        }
+                    )
                 )
             }
             .launchIn(viewModelScope)

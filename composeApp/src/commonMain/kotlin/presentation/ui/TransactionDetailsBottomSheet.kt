@@ -34,7 +34,7 @@ import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionDetailsDialog(
+fun TransactionDetailsBottomSheet(
     availableCategories: ImmutableList<ExpenseCategory>,
     onAddClick: (name: String, category: ExpenseCategory, amount: String) -> Unit,
     onDismissRequest: () -> Unit,
@@ -50,7 +50,7 @@ fun TransactionDetailsDialog(
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(
                 text = "Transaction details",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.titleLarge
             )
 
             Spacer(modifier = Modifier.height(16.dp))

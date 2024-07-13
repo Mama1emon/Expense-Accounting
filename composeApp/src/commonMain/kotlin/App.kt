@@ -39,7 +39,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import presentation.MainViewModel
 import presentation.state.MainScreenState
-import presentation.ui.TransactionDetailsDialog
+import presentation.ui.SummaryBottomSheet
+import presentation.ui.TransactionDetailsBottomSheet
 import presentation.ui.TransactionFilters
 import presentation.ui.TransactionItem
 
@@ -53,7 +54,8 @@ fun App() {
     val state: MainScreenState = koinViewModel<MainViewModel>().uiState.collectAsState().value
 
     MaterialTheme {
-        var isDialogExpanded by remember { mutableStateOf(false) }
+        var isTxDetailsExpanded by remember { mutableStateOf(false) }
+        var isSummaryExpanded by remember { mutableStateOf(false) }
 
         Box(modifier = Modifier.fillMaxSize()) {
             var bottomOffset by remember { mutableStateOf(0) }
@@ -77,9 +79,10 @@ fun App() {
                             .fillMaxWidth()
                             .padding(
                                 top = WindowInsets.statusBars.asPaddingValues()
-                                    .calculateTopPadding().plus(16.dp),
+                                    .calculateTopPadding().plus(24.dp),
                             )
                             .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
                             text = "Expense Accounting",
@@ -116,13 +119,13 @@ fun App() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 ExtendedFloatingActionButton(
-                    onClick = { TODO() },
+                    onClick = { isSummaryExpanded = true },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(text = "Summary")
                 }
 
-                FloatingActionButton(onClick = { isDialogExpanded = true }) {
+                FloatingActionButton(onClick = { isTxDetailsExpanded = true }) {
                     Icon(imageVector = Icons.Outlined.Add, contentDescription = null)
                 }
             }
@@ -130,11 +133,18 @@ fun App() {
 
 
 
-        if (isDialogExpanded) {
-            TransactionDetailsDialog(
+        if (isTxDetailsExpanded) {
+            TransactionDetailsBottomSheet(
                 availableCategories = state.availableCategories,
                 onAddClick = state.onAddTransactionClick,
-                onDismissRequest = { isDialogExpanded = false }
+                onDismissRequest = { isTxDetailsExpanded = false }
+            )
+        }
+
+        if (isSummaryExpanded) {
+            SummaryBottomSheet(
+                summaryState = state.summaryState,
+                onDismissRequest = { isSummaryExpanded = false }
             )
         }
     }
