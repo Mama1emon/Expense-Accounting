@@ -1,11 +1,14 @@
 package di
 
+import data.AppCurrencyRepositoryImpl
 import data.TransactionsRepositoryImpl
+import data.local.getAppCurrencyStore
 import data.local.getTransactionsStore
 import domain.AddTransactionUseCase
 import domain.CalculateExpensesUseCase
 import domain.GetAllTransactionsUseCase
 import domain.TransactionsRepository
+import domain.appcurrency.AppCurrencyRepository
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -19,6 +22,9 @@ object Modules {
     val dataModule = module {
         single { TransactionsRepositoryImpl(transactionsStore = getTransactionsStore()) }
             .bind<TransactionsRepository>()
+
+        single { AppCurrencyRepositoryImpl(appCurrencyStore = getAppCurrencyStore()) }
+            .bind<AppCurrencyRepository>()
     }
 
     val domainModule = module {

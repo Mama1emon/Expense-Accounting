@@ -1,8 +1,8 @@
 package presentation.state
 
-import domain.AppCurrency
 import domain.ExpenseCategory
 import domain.Transaction
+import domain.appcurrency.AppCurrency
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet

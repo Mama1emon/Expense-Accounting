@@ -1,4 +1,4 @@
-package domain
+package domain.appcurrency
 
 /**
  * @author Andrew Khokhlov on 15/07/2024

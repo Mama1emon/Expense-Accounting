@@ -3,11 +3,11 @@ package presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.AddTransactionUseCase
-import domain.AppCurrency
 import domain.CalculateExpensesUseCase
 import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
 import domain.Transaction
+import domain.appcurrency.AppCurrency
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
