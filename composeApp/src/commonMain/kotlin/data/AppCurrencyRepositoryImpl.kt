@@ -12,7 +12,7 @@ class AppCurrencyRepositoryImpl(
     private val appCurrencyStore: DataStore<ProtoAppCurrency>,
 ) : AppCurrencyRepository {
 
-    override suspend fun getAppCurrency(): Flow<AppCurrency?> {
+    override fun getAppCurrency(): Flow<AppCurrency?> {
         return appCurrencyStore.data.map {
             AppCurrencyConverter.convert(protoAppCurrency = it)
         }

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface AppCurrencyRepository {
 
-    suspend fun getAppCurrency(): Flow<AppCurrency?>
+    fun getAppCurrency(): Flow<AppCurrency?>
 
     suspend fun saveAppCurrency(appCurrency: AppCurrency)
 }

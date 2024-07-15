@@ -8,6 +8,8 @@ import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
 import domain.Transaction
 import domain.appcurrency.AppCurrency
+import domain.appcurrency.ChangeAppCurrencyUseCase
+import domain.appcurrency.GetAppCurrencyUseCase
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
@@ -30,6 +32,8 @@ class MainViewModel(
     private val addTransactionUseCase: AddTransactionUseCase,
     private val getAllTransactionsUseCase: GetAllTransactionsUseCase,
     private val getCalculateExpensesUseCase: CalculateExpensesUseCase,
+    private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
+    private val changeAppCurrencyUseCase: ChangeAppCurrencyUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(value = getInitState())
@@ -83,13 +87,16 @@ class MainViewModel(
     private fun subscribeOnTransactionsUpdate() {
         combine(
             flow = getAllTransactionsUseCase(),
-            flow2 = filterCategory
-        ) { transactions, filterCategory ->
+            flow2 = filterCategory,
+            flow3 = getAppCurrencyUseCase(),
+        ) { transactions, filterCategory, appCurrency ->
             if (filterCategory == null) {
                 transactions
             } else {
                 transactions.filter { it.expenseCategory == filterCategory }
             } to filterCategory
+
+            Triple(transactions, filterCategory, appCurrency)
         }
             .onEach {
 //                TODO: imitate multiple transactions
@@ -102,10 +109,11 @@ class MainViewModel(
 //
 //                val (_, filterCategory) = it
 
-                val (transactions, filterCategory) = it
+                val (transactions, filterCategory, appCurrency) = it
 
                 _uiState.value = _uiState.value.copy(
                     topBarState = uiState.value.topBarState.copy(
+                        selectedAppCurrency = appCurrency,
                         filterCategories = transactions
                             .map(Transaction::expenseCategory)
                             .toImmutableSet(),
@@ -139,7 +147,9 @@ class MainViewModel(
     }
 
     private fun changeAppCurrency(appCurrency: AppCurrency) {
-        TODO()
+        viewModelScope.launch {
+            changeAppCurrencyUseCase(appCurrency)
+        }
     }
 
     private fun addTransaction(name: String, expenseCategory: ExpenseCategory, amount: String) {

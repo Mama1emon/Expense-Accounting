@@ -10,7 +10,7 @@ class GetAppCurrencyUseCase(
     private val appCurrencyRepository: AppCurrencyRepository,
 ) {
 
-    suspend operator fun invoke(): Flow<AppCurrency> {
+    operator fun invoke(): Flow<AppCurrency> {
         return appCurrencyRepository.getAppCurrency().map { it ?: AppCurrency.Dollar }
     }
 }
