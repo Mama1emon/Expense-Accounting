@@ -3,14 +3,17 @@ package presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.AddTransactionUseCase
+import domain.AppCurrency
 import domain.CalculateExpensesUseCase
 import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
 import domain.Transaction
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -40,8 +43,20 @@ class MainViewModel(
 
     private fun getInitState(): MainScreenState {
         return MainScreenState(
+            topBarState = MainScreenState.TopBarState(
+                selectedAppCurrency = AppCurrency.Dollar,
+                availableAppCurrencies = persistentListOf(
+                    AppCurrency.Dollar,
+                    AppCurrency.Euro,
+                    AppCurrency.Ruble,
+                    AppCurrency.IndonesianRupiah,
+                ),
+                filterCategories = persistentSetOf(),
+                onChangeAppCurrencyClick = ::changeAppCurrency,
+                onFilterByCategoryClick = ::filterByCategory,
+            ),
             transactions = persistentListOf(),
-            availableCategories = persistentListOf(
+            availableCategories = persistentSetOf(
                 ExpenseCategory.Housing,
                 ExpenseCategory.Transport,
                 ExpenseCategory.Cellular,
@@ -62,7 +77,6 @@ class MainViewModel(
                 totalCategories = persistentMapOf()
             ),
             onAddTransactionClick = ::addTransaction,
-            onFilterByCategoryClick = ::filterByCategory
         )
     }
 
@@ -78,9 +92,24 @@ class MainViewModel(
             } to filterCategory
         }
             .onEach {
+//                TODO: imitate multiple transactions
+//                var transactions = it.first
+//                repeat(5) {
+//                    transactions = transactions + transactions
+//                }
+//
+//                transactions = transactions.map { it.copy(id = Random.nextLong().toString()) }
+//
+//                val (_, filterCategory) = it
+
                 val (transactions, filterCategory) = it
 
                 _uiState.value = _uiState.value.copy(
+                    topBarState = uiState.value.topBarState.copy(
+                        filterCategories = transactions
+                            .map(Transaction::expenseCategory)
+                            .toImmutableSet(),
+                    ),
                     transactions = transactions.reversed().toImmutableList(),
                     summaryState = MainScreenState.SummaryState(
                         total = getCalculateExpensesUseCase(
@@ -107,6 +136,10 @@ class MainViewModel(
                 )
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun changeAppCurrency(appCurrency: AppCurrency) {
+        TODO()
     }
 
     private fun addTransaction(name: String, expenseCategory: ExpenseCategory, amount: String) {

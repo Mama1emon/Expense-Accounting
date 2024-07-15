@@ -7,12 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.window.PopupProperties
 import domain.ExpenseCategory
-import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
 fun ChooseCategoryMenu(
     isExpanded: Boolean,
-    categories: ImmutableList<ExpenseCategory>,
+    categories: ImmutableSet<ExpenseCategory>,
     onCategoryClick: (ExpenseCategory) -> Unit,
     onDismissRequest: () -> Unit,
 ) {

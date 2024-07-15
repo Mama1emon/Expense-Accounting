@@ -30,12 +30,12 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import domain.ExpenseCategory
-import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailsBottomSheet(
-    availableCategories: ImmutableList<ExpenseCategory>,
+    availableCategories: ImmutableSet<ExpenseCategory>,
     onAddClick: (name: String, category: ExpenseCategory, amount: String) -> Unit,
     onDismissRequest: () -> Unit,
 ) {

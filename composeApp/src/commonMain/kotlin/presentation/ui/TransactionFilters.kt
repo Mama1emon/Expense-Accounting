@@ -15,11 +15,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import domain.ExpenseCategory
-import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
 fun TransactionFilters(
-    categories: ImmutableList<ExpenseCategory>,
+    categories: ImmutableSet<ExpenseCategory>,
     onCategoryFilterClick: (ExpenseCategory?) -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(value = false) }
