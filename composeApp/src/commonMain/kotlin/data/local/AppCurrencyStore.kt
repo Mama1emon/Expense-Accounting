@@ -1,9 +1,9 @@
 package data.local
 
 import androidx.datastore.core.DataStore
+import com.mama1emon.exac.AppCurrency
 import data.local.serializers.AppCurrencySerializer
 import data.local.utils.createDataStore
-import example.AppCurrency
 import okio.FileSystem
 import okio.Path
 

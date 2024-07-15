@@ -3,26 +3,20 @@ package data
 import androidx.datastore.core.DataStore
 import com.mama1emon.exac.Transactions
 import data.converters.ExpenseCategoryConverter
+import data.converters.TransactionConverter
 import domain.ExpenseCategory
 import domain.Transaction
 import domain.TransactionsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import com.mama1emon.exac.Transaction as ProtoTransaction
 
 class TransactionsRepositoryImpl(
     private val transactionsStore: DataStore<Transactions>,
 ) : TransactionsRepository {
 
     override suspend fun saveTransaction(transaction: Transaction) {
-        val protoTransaction = ProtoTransaction(
-            id = transaction.id,
-            name = transaction.name,
-            expense_category = ExpenseCategoryConverter.convert(transaction.expenseCategory),
-            amount = transaction.amount,
-            timestamp = transaction.timestamp,
-        )
+        val protoTransaction = TransactionConverter.convert(transaction)
 
         transactionsStore.updateData { it.copy(transactions = it.transactions + protoTransaction) }
     }
@@ -44,28 +38,12 @@ class TransactionsRepositoryImpl(
 
                 isSelectedCategory && it.timestamp in startTimestamp..endTimestamp
             }
-            .map { protoTransaction ->
-                Transaction(
-                    id = protoTransaction.id,
-                    name = protoTransaction.name,
-                    expenseCategory = ExpenseCategoryConverter.convert(protoTransaction.expense_category),
-                    amount = protoTransaction.amount,
-                    timestamp = protoTransaction.timestamp,
-                )
-            }
+            .map(TransactionConverter::convert)
     }
 
     override fun getAllTransactions(): Flow<List<Transaction>> {
         return transactionsStore.data.map {
-            it.transactions.map { protoTransaction ->
-                Transaction(
-                    id = protoTransaction.id,
-                    name = protoTransaction.name,
-                    expenseCategory = ExpenseCategoryConverter.convert(protoTransaction.expense_category),
-                    amount = protoTransaction.amount,
-                    timestamp = protoTransaction.timestamp,
-                )
-            }
+            it.transactions.map(TransactionConverter::convert)
         }
     }
 }

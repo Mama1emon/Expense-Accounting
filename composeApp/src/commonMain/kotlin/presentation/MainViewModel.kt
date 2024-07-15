@@ -3,6 +3,7 @@ package presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.AddTransactionUseCase
+import domain.Amount
 import domain.CalculateExpensesUseCase
 import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
@@ -46,41 +47,49 @@ class MainViewModel(
     }
 
     private fun getInitState(): MainScreenState {
+        val availableCurrencies = persistentSetOf(
+            AppCurrency.Dollar,
+            AppCurrency.Euro,
+            AppCurrency.Ruble,
+            AppCurrency.IndonesianRupiah,
+        )
+
+        val availableCategories = persistentSetOf(
+            ExpenseCategory.Housing,
+            ExpenseCategory.Transport,
+            ExpenseCategory.Cellular,
+            ExpenseCategory.Sport,
+            ExpenseCategory.HealthAndCare,
+            ExpenseCategory.Household,
+            ExpenseCategory.Clothing,
+            ExpenseCategory.Entertainment,
+            ExpenseCategory.Gifts,
+            ExpenseCategory.Documents,
+            ExpenseCategory.Travel,
+            ExpenseCategory.FoodDelivery,
+            ExpenseCategory.Food,
+            ExpenseCategory.Other,
+        )
+
         return MainScreenState(
+            appCurrency = AppCurrency.Dollar,
             topBarState = MainScreenState.TopBarState(
-                selectedAppCurrency = AppCurrency.Dollar,
-                availableAppCurrencies = persistentListOf(
-                    AppCurrency.Dollar,
-                    AppCurrency.Euro,
-                    AppCurrency.Ruble,
-                    AppCurrency.IndonesianRupiah,
-                ),
+                availableAppCurrencies = availableCurrencies,
                 filterCategories = persistentSetOf(),
                 onChangeAppCurrencyClick = ::changeAppCurrency,
                 onFilterByCategoryClick = ::filterByCategory,
             ),
             transactions = persistentListOf(),
-            availableCategories = persistentSetOf(
-                ExpenseCategory.Housing,
-                ExpenseCategory.Transport,
-                ExpenseCategory.Cellular,
-                ExpenseCategory.Sport,
-                ExpenseCategory.HealthAndCare,
-                ExpenseCategory.Household,
-                ExpenseCategory.Clothing,
-                ExpenseCategory.Entertainment,
-                ExpenseCategory.Gifts,
-                ExpenseCategory.Documents,
-                ExpenseCategory.Travel,
-                ExpenseCategory.FoodDelivery,
-                ExpenseCategory.Food,
-                ExpenseCategory.Other,
+            availableCategories = availableCategories,
+            transactionDetailsState = MainScreenState.TransactionDetailsState(
+                availableCurrencies = availableCurrencies,
+                availableCategories = availableCategories,
+                onAddTransactionClick = ::addTransaction
             ),
             summaryState = MainScreenState.SummaryState(
                 total = "0",
                 totalCategories = persistentMapOf()
             ),
-            onAddTransactionClick = ::addTransaction,
         )
     }
 
@@ -112,29 +121,19 @@ class MainViewModel(
                 val (transactions, filterCategory, appCurrency) = it
 
                 _uiState.value = _uiState.value.copy(
+                    appCurrency = appCurrency,
                     topBarState = uiState.value.topBarState.copy(
-                        selectedAppCurrency = appCurrency,
                         filterCategories = transactions
                             .map(Transaction::expenseCategory)
                             .toImmutableSet(),
                     ),
                     transactions = transactions.reversed().toImmutableList(),
                     summaryState = MainScreenState.SummaryState(
-                        total = getCalculateExpensesUseCase(
-                            startTimestamp = Clock.System.now()
-                                .toEpochMilliseconds() - 24 * 60 * 60 * 1000,
-                            endTimestamp = Clock.System.now().toEpochMilliseconds(),
-                            category = filterCategory,
-                        ).toString(),
+                        total = calculateTotalByCategory(filterCategory, appCurrency),
                         totalCategories = if (filterCategory == null) {
                             transactions.map(Transaction::expenseCategory)
                                 .associateWith {
-                                    getCalculateExpensesUseCase(
-                                        startTimestamp = Clock.System.now()
-                                            .toEpochMilliseconds() - 24 * 60 * 60 * 1000,
-                                        endTimestamp = Clock.System.now().toEpochMilliseconds(),
-                                        category = it
-                                    ).toString()
+                                    calculateTotalByCategory(filterCategory, appCurrency)
                                 }
                                 .toImmutableMap()
                         } else {
@@ -146,15 +145,52 @@ class MainViewModel(
             .launchIn(viewModelScope)
     }
 
+    private suspend fun calculateTotalByCategory(
+        category: ExpenseCategory?,
+        appCurrency: AppCurrency,
+    ): String {
+        val total = getCalculateExpensesUseCase(
+            startTimestamp = 0, // TODO
+            endTimestamp = Clock.System.now().toEpochMilliseconds(),
+            category = category,
+            appCurrency = appCurrency,
+        )
+
+        return formatAmount(total, appCurrency)
+    }
+
+    private fun formatAmount(value: Double, currency: AppCurrency): String {
+        val currencySymbol = when (currency) {
+            AppCurrency.Dollar -> "$"
+            AppCurrency.Euro -> "€"
+            AppCurrency.Ruble -> "₽"
+            AppCurrency.IndonesianRupiah -> "Rp"
+        }
+
+        return "$value $currencySymbol"
+    }
+
     private fun changeAppCurrency(appCurrency: AppCurrency) {
         viewModelScope.launch {
             changeAppCurrencyUseCase(appCurrency)
         }
     }
 
-    private fun addTransaction(name: String, expenseCategory: ExpenseCategory, amount: String) {
+    private fun addTransaction(
+        name: String,
+        expenseCategory: ExpenseCategory,
+        amount: String,
+        appCurrency: AppCurrency
+    ) {
         viewModelScope.launch {
-            addTransactionUseCase(name, expenseCategory, amount.toDouble())
+            addTransactionUseCase(
+                name = name,
+                expenseCategory = expenseCategory,
+                amount = Amount(
+                    value = amount.toDouble(),
+                    currency = appCurrency,
+                )
+            )
         }
     }
 

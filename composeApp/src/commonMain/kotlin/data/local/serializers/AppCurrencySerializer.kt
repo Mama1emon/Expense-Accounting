@@ -1,8 +1,8 @@
 package data.local.serializers
 
 import androidx.datastore.core.okio.OkioSerializer
-import example.AppCurrency
-import example.CurrencyType
+import com.mama1emon.exac.AppCurrency
+import com.mama1emon.exac.CurrencyType
 import okio.BufferedSink
 import okio.BufferedSource
 import okio.IOException

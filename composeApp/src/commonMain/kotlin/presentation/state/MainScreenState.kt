@@ -11,19 +11,25 @@ import kotlinx.collections.immutable.ImmutableSet
  * @author Andrew Khokhlov on 11/07/2024
  */
 data class MainScreenState(
+    val appCurrency: AppCurrency,
     val topBarState: TopBarState,
     val transactions: ImmutableList<Transaction>,
     val availableCategories: ImmutableSet<ExpenseCategory>,
+    val transactionDetailsState: TransactionDetailsState,
     val summaryState: SummaryState,
-    val onAddTransactionClick: (String, ExpenseCategory, String) -> Unit,
 ) {
 
     data class TopBarState(
-        val selectedAppCurrency: AppCurrency,
-        val availableAppCurrencies: ImmutableList<AppCurrency>,
+        val availableAppCurrencies: ImmutableSet<AppCurrency>,
         val filterCategories: ImmutableSet<ExpenseCategory>,
         val onChangeAppCurrencyClick: (AppCurrency) -> Unit,
         val onFilterByCategoryClick: (ExpenseCategory?) -> Unit,
+    )
+
+    data class TransactionDetailsState(
+        val availableCurrencies: ImmutableSet<AppCurrency>,
+        val availableCategories: ImmutableSet<ExpenseCategory>,
+        val onAddTransactionClick: (String, ExpenseCategory, String, AppCurrency) -> Unit
     )
 
     data class SummaryState(

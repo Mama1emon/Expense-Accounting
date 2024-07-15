@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import 'app_currency.proto';
+
 package com.mama1emon.exac;
 
 option java_multiple_files = true;
@@ -32,4 +34,5 @@ message Transaction {
   ExpenseCategory expense_category = 3;
   double amount = 4;
   int64 timestamp = 5;
+  CurrencyType type = 6;
 }

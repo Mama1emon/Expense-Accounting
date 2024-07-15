@@ -11,7 +11,7 @@ class AddTransactionUseCase(private val repository: TransactionsRepository) {
     suspend operator fun invoke(
         name: String,
         expenseCategory: ExpenseCategory,
-        amount: Double,
+        amount: Amount,
     ) {
         val transaction = Transaction(
             id = randomUUID(),

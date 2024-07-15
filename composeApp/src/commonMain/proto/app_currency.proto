@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package example;
+package com.mama1emon.exac;
 
 enum CurrencyType {
   CURRENCY_TYPE_UNSPECIFIED = 0;

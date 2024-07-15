@@ -8,16 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CurrencyExchange
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +27,10 @@ import presentation.state.MainScreenState
  * @author Andrew Khokhlov on 15/07/2024
  */
 @Composable
-fun TopBarWithChips(state: MainScreenState.TopBarState) {
+fun TopBarWithChips(
+    state: MainScreenState.TopBarState,
+    appCurrency: AppCurrency,
+) {
     var isDialogExpanded by remember { mutableStateOf(false) }
 
     Column(
@@ -68,54 +67,11 @@ fun TopBarWithChips(state: MainScreenState.TopBarState) {
     }
 
     if (isDialogExpanded) {
-        var appCurrency by mutableStateOf(value = state.selectedAppCurrency)
-
-        AlertDialog(
+        SelectCurrencyAlert(
+            selectedCurrency = appCurrency,
+            availableCurrencies = state.availableAppCurrencies,
+            onSelect = state.onChangeAppCurrencyClick,
             onDismissRequest = { isDialogExpanded = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        state.onChangeAppCurrencyClick(appCurrency)
-                        isDialogExpanded = false
-                    }
-                ) {
-                    Text(text = "OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { isDialogExpanded = false }) {
-                    Text(text = "Cancel")
-                }
-            },
-            title = { Text(text = "Select currency") },
-            text = {
-                Column {
-                    state.availableAppCurrencies.forEach {
-                        key(it) {
-                            AppCurrencyItem(
-                                state = it,
-                                isSelected = it == appCurrency,
-                                onClick = { appCurrency = it }
-                            )
-                        }
-                    }
-                }
-            },
         )
-    }
-}
-
-@Composable
-private fun AppCurrencyItem(
-    state: AppCurrency,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = isSelected, onClick = onClick)
-
-        Text(text = state::class.simpleName.toString())
     }
 }

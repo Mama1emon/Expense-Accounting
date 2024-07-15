@@ -1,5 +1,6 @@
 package presentation.ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,7 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.outlined.CurrencyRuble
+import androidx.compose.material.icons.outlined.EuroSymbol
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -30,22 +35,29 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import domain.ExpenseCategory
-import kotlinx.collections.immutable.ImmutableSet
+import domain.appcurrency.AppCurrency
+import presentation.state.MainScreenState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailsBottomSheet(
-    availableCategories: ImmutableSet<ExpenseCategory>,
-    onAddClick: (name: String, category: ExpenseCategory, amount: String) -> Unit,
+    state: MainScreenState.TransactionDetailsState,
+    currency: AppCurrency,
     onDismissRequest: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+
+    var currency by remember { mutableStateOf(currency) }
+    var category: ExpenseCategory? by remember { mutableStateOf(null) }
+
+    var isCategoryMenuExpanded by remember { mutableStateOf(false) }
+    var isCurrencyMenuExpanded by remember { mutableStateOf(false) }
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
     ) {
         var name by remember { mutableStateOf("") }
         var amount by remember { mutableStateOf("") }
-        var category: ExpenseCategory? by remember { mutableStateOf(null) }
-        val focusManager = LocalFocusManager.current
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(
@@ -73,13 +85,27 @@ fun TransactionDetailsBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            var isMenuExpanded by remember { mutableStateOf(false) }
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Amount") },
                 placeholder = { Text(text = "1") },
+                trailingIcon = {
+                    IconButton(onClick = { isCurrencyMenuExpanded = true }) {
+                        AnimatedContent(currency) {
+                            Icon(
+                                imageVector = when (it) {
+                                    AppCurrency.Dollar -> Icons.Outlined.AttachMoney
+                                    AppCurrency.Euro -> Icons.Outlined.EuroSymbol
+                                    AppCurrency.Ruble -> Icons.Outlined.CurrencyRuble
+                                    AppCurrency.IndonesianRupiah -> Icons.Outlined.AccountBalanceWallet
+                                },
+                                contentDescription = null
+                            )
+                        }
+                    }
+                },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
@@ -89,7 +115,7 @@ fun TransactionDetailsBottomSheet(
                 ),
                 keyboardActions = KeyboardActions {
                     focusManager.moveFocus(focusDirection = FocusDirection.Down)
-                    isMenuExpanded = true
+                    isCategoryMenuExpanded = true
                 }
             )
 
@@ -97,13 +123,13 @@ fun TransactionDetailsBottomSheet(
 
             OutlinedTextField(
                 value = category?.let { it::class.simpleName }.orEmpty(),
-                onValueChange = { isMenuExpanded = true },
+                onValueChange = { isCategoryMenuExpanded = true },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
                 label = { Text(text = "Category") },
                 trailingIcon = {
                     IconButton(
-                        onClick = { isMenuExpanded = !isMenuExpanded }
+                        onClick = { isCategoryMenuExpanded = !isCategoryMenuExpanded }
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ArrowDropDown,
@@ -114,23 +140,12 @@ fun TransactionDetailsBottomSheet(
                 singleLine = true,
             )
 
-            ChooseCategoryMenu(
-                isExpanded = isMenuExpanded,
-                categories = availableCategories,
-                onCategoryClick = {
-                    category = it
-                    isMenuExpanded = false
-                    focusManager.clearFocus()
-                },
-                onDismissRequest = { isMenuExpanded = false },
-            )
-
             Spacer(modifier = Modifier.height(28.dp))
 
             FilledTonalButton(
                 onClick = {
                     onDismissRequest()
-                    onAddClick(name, category!!, amount)
+                    state.onAddTransactionClick(name, category!!, amount, currency)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,4 +158,26 @@ fun TransactionDetailsBottomSheet(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+
+    ChooseCategoryMenu(
+        isExpanded = isCategoryMenuExpanded,
+        categories = state.availableCategories,
+        onCategoryClick = {
+            category = it
+            isCategoryMenuExpanded = false
+            focusManager.clearFocus()
+        },
+        onDismissRequest = { isCategoryMenuExpanded = false },
+    )
+
+    ChooseCurrencyMenu(
+        isExpanded = isCurrencyMenuExpanded,
+        currencies = state.availableCurrencies,
+        onCurrencyClick = {
+            currency = it
+            isCurrencyMenuExpanded = false
+            focusManager.clearFocus()
+        },
+        onDismissRequest = { isCurrencyMenuExpanded = false },
+    )
 }

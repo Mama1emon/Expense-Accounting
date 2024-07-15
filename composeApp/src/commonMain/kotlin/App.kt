@@ -63,7 +63,12 @@ fun App() {
                 ),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                stickyHeader { TopBarWithChips(state = state.topBarState) }
+                stickyHeader {
+                    TopBarWithChips(
+                        state = state.topBarState,
+                        appCurrency = state.appCurrency
+                    )
+                }
 
                 items(
                     items = state.transactions,
@@ -101,8 +106,8 @@ fun App() {
 
         if (isTxDetailsExpanded) {
             TransactionDetailsBottomSheet(
-                availableCategories = state.availableCategories,
-                onAddClick = state.onAddTransactionClick,
+                state = state.transactionDetailsState,
+                currency = state.appCurrency,
                 onDismissRequest = { isTxDetailsExpanded = false }
             )
         }
