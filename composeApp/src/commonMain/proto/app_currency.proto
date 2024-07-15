@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package example;
+
+enum CurrencyType {
+  CURRENCY_TYPE_UNSPECIFIED = 0;
+  DOLLAR = 1;
+  EURO = 2;
+  RUBLE = 3;
+  INDONESIAN_RUPIAH = 4;
+}
+
+message AppCurrency {
+  CurrencyType type = 1;
+}
