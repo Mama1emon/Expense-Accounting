@@ -1,6 +1,7 @@
 package di
 
 import data.AppCurrencyRepositoryImpl
+import data.MockRateRepository
 import data.TransactionsRepositoryImpl
 import data.local.getAppCurrencyStore
 import data.local.getTransactionsStore
@@ -11,6 +12,7 @@ import domain.TransactionsRepository
 import domain.appcurrency.AppCurrencyRepository
 import domain.appcurrency.ChangeAppCurrencyUseCase
 import domain.appcurrency.GetAppCurrencyUseCase
+import domain.rate.RateRepository
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -27,6 +29,8 @@ object Modules {
 
         single { AppCurrencyRepositoryImpl(appCurrencyStore = getAppCurrencyStore()) }
             .bind<AppCurrencyRepository>()
+
+        singleOf(::MockRateRepository).bind<RateRepository>()
     }
 
     val domainModule = module {
