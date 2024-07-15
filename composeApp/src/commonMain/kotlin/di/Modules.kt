@@ -9,6 +9,8 @@ import domain.CalculateExpensesUseCase
 import domain.GetAllTransactionsUseCase
 import domain.TransactionsRepository
 import domain.appcurrency.AppCurrencyRepository
+import domain.appcurrency.ChangeAppCurrencyUseCase
+import domain.appcurrency.GetAppCurrencyUseCase
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -31,6 +33,8 @@ object Modules {
         singleOf(::AddTransactionUseCase)
         singleOf(::CalculateExpensesUseCase)
         singleOf(::GetAllTransactionsUseCase)
+        singleOf(::GetAppCurrencyUseCase)
+        singleOf(::ChangeAppCurrencyUseCase)
     }
 
     val presentationModule = module {
