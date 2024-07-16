@@ -8,6 +8,8 @@ import domain.appcurrency.AppCurrency
 object AmountFormatter {
 
     fun formatAmount(value: Double, currency: AppCurrency): String {
+        val value = value.toString()
+
         val currencySymbol = when (currency) {
             AppCurrency.Dollar -> "$"
             AppCurrency.Euro -> "€"
@@ -15,6 +17,20 @@ object AmountFormatter {
             AppCurrency.IndonesianRupiah -> "Rp"
         }
 
-        return "$value $currencySymbol"
+        val indexOfDot = value.indexOfFirst { it == '.' }
+
+        val amount = if (indexOfDot == -1) {
+            value
+        } else {
+            val lastIndex = if (indexOfDot + 3 > value.length) {
+                value.length
+            } else {
+                indexOfDot + 3
+            }
+
+            value.substring(0, lastIndex)
+        }
+
+        return "$amount $currencySymbol"
     }
 }

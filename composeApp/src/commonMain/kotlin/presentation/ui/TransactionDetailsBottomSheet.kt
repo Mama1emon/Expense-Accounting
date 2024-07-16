@@ -45,8 +45,6 @@ fun TransactionDetailsBottomSheet(
     currency: AppCurrency,
     onDismissRequest: () -> Unit,
 ) {
-    val focusManager = LocalFocusManager.current
-
     var currency by remember { mutableStateOf(currency) }
     var category: ExpenseCategory? by remember { mutableStateOf(null) }
 
@@ -56,6 +54,8 @@ fun TransactionDetailsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
     ) {
+        val focusManager = LocalFocusManager.current
+
         var name by remember { mutableStateOf("") }
         var amount by remember { mutableStateOf("") }
 
@@ -165,7 +165,6 @@ fun TransactionDetailsBottomSheet(
         onSelect = {
             category = it
             isCategoryMenuExpanded = false
-            focusManager.clearFocus()
         },
         onDismissRequest = { isCategoryMenuExpanded = false },
     )
@@ -176,7 +175,6 @@ fun TransactionDetailsBottomSheet(
         onSelect = {
             currency = it
             isCurrencyMenuExpanded = false
-            focusManager.clearFocus()
         },
         onDismissRequest = { isCurrencyMenuExpanded = false },
     )
