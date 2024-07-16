@@ -1,7 +1,6 @@
 package presentation.state
 
 import domain.ExpenseCategory
-import domain.Transaction
 import domain.appcurrency.AppCurrency
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
@@ -13,7 +12,7 @@ import kotlinx.collections.immutable.ImmutableSet
 data class MainScreenState(
     val appCurrency: AppCurrency,
     val topBarState: TopBarState,
-    val transactions: ImmutableList<Transaction>,
+    val transactions: ImmutableList<TransactionState>,
     val availableCategories: ImmutableSet<ExpenseCategory>,
     val transactionDetailsState: TransactionDetailsState,
     val summaryState: SummaryState,
@@ -24,6 +23,14 @@ data class MainScreenState(
         val filterCategories: ImmutableSet<ExpenseCategory>,
         val onChangeAppCurrencyClick: (AppCurrency) -> Unit,
         val onFilterByCategoryClick: (ExpenseCategory?) -> Unit,
+    )
+
+    data class TransactionState(
+        val id: String,
+        val name: String,
+        val category: String,
+        val amount: String,
+        val primaryAmount: String,
     )
 
     data class TransactionDetailsState(

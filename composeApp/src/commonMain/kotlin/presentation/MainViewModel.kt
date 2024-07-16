@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import domain.AddTransactionUseCase
 import domain.Amount
 import domain.CalculateExpensesUseCase
+import domain.ConvertCurrencyUseCase
 import domain.ExpenseCategory
 import domain.GetAllTransactionsUseCase
 import domain.Transaction
@@ -24,6 +25,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import presentation.converters.TransactionStateConverter
+import presentation.formatters.AmountFormatter
 import presentation.state.MainScreenState
 
 /**
@@ -35,6 +38,7 @@ class MainViewModel(
     private val getCalculateExpensesUseCase: CalculateExpensesUseCase,
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val changeAppCurrencyUseCase: ChangeAppCurrencyUseCase,
+    private val convertCurrencyUseCase: ConvertCurrencyUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(value = getInitState())
@@ -108,16 +112,6 @@ class MainViewModel(
             Triple(transactions, filterCategory, appCurrency)
         }
             .onEach {
-//                TODO: imitate multiple transactions
-//                var transactions = it.first
-//                repeat(5) {
-//                    transactions = transactions + transactions
-//                }
-//
-//                transactions = transactions.map { it.copy(id = Random.nextLong().toString()) }
-//
-//                val (_, filterCategory) = it
-
                 val (transactions, filterCategory, appCurrency) = it
 
                 _uiState.value = _uiState.value.copy(
@@ -128,7 +122,14 @@ class MainViewModel(
                             .map(Transaction::expenseCategory)
                             .toImmutableSet(),
                     ),
-                    transactions = transactions.reversed().toImmutableList(),
+                    transactions = transactions
+                        .reversed()
+                        .map { transaction ->
+                            TransactionStateConverter(
+                                amount = convertCurrencyUseCase(transaction.amount, appCurrency)
+                            ).convert(transaction)
+                        }
+                        .toImmutableList(),
                     summaryState = MainScreenState.SummaryState(
                         total = calculateTotalByCategory(filterCategory, appCurrency),
                         totalCategories = if (filterCategory == null) {
@@ -157,19 +158,9 @@ class MainViewModel(
             appCurrency = appCurrency,
         )
 
-        return formatAmount(total, appCurrency)
+        return AmountFormatter.formatAmount(total, appCurrency)
     }
 
-    private fun formatAmount(value: Double, currency: AppCurrency): String {
-        val currencySymbol = when (currency) {
-            AppCurrency.Dollar -> "$"
-            AppCurrency.Euro -> "€"
-            AppCurrency.Ruble -> "₽"
-            AppCurrency.IndonesianRupiah -> "Rp"
-        }
-
-        return "$value $currencySymbol"
-    }
 
     private fun changeAppCurrency(appCurrency: AppCurrency) {
         viewModelScope.launch {

@@ -1,6 +1,5 @@
 package presentation.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,7 +34,6 @@ fun TopBarWithChips(
 
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surface)
             .fillMaxWidth()
             .padding(start = 16.dp, end = 12.dp)
             .padding(vertical = 8.dp),

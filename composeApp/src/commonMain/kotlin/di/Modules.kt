@@ -7,6 +7,7 @@ import data.local.getAppCurrencyStore
 import data.local.getTransactionsStore
 import domain.AddTransactionUseCase
 import domain.CalculateExpensesUseCase
+import domain.ConvertCurrencyUseCase
 import domain.GetAllTransactionsUseCase
 import domain.TransactionsRepository
 import domain.appcurrency.AppCurrencyRepository
@@ -39,6 +40,7 @@ object Modules {
         singleOf(::GetAllTransactionsUseCase)
         singleOf(::GetAppCurrencyUseCase)
         singleOf(::ChangeAppCurrencyUseCase)
+        singleOf(::ConvertCurrencyUseCase)
     }
 
     val presentationModule = module {

@@ -1,4 +1,5 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -25,10 +27,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import domain.Transaction
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -61,7 +63,6 @@ fun App() {
                 contentPadding = PaddingValues(
                     bottom = with(density) { bottomOffset.toDp() },
                 ),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 stickyHeader {
                     TopBarWithChips(
@@ -70,15 +71,18 @@ fun App() {
                     )
                 }
 
-                items(
+                itemsIndexed(
                     items = state.transactions,
-                    key = Transaction::id,
-                    itemContent = {
+                    key = { _, item -> item.id },
+                    itemContent = { index, item ->
                         TransactionItem(
-                            value = it,
                             modifier = Modifier
-                                .padding(horizontal = 16.dp)
                                 .animateItemPlacement()
+                                .roundedShapeItemDecoration(
+                                    currentIndex = index,
+                                    lastIndex = state.transactions.lastIndex,
+                                ),
+                            state = item
                         )
                     }
                 )
@@ -118,5 +122,54 @@ fun App() {
                 onDismissRequest = { isSummaryExpanded = false }
             )
         }
+    }
+}
+
+fun Modifier.roundedShapeItemDecoration(
+    currentIndex: Int,
+    lastIndex: Int,
+): Modifier = composed {
+    val modifier = this.padding(horizontal = 14.dp)
+    val isSingleItem = currentIndex == 0 && lastIndex == 0
+
+    when {
+        isSingleItem -> {
+            modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(vertical = 14.dp)
+        }
+
+        currentIndex == 0 -> {
+            modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                    ),
+                )
+                .padding(vertical = 14.dp)
+        }
+
+        currentIndex == lastIndex -> {
+            modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp,
+                    ),
+                )
+                .padding(bottom = 14.dp)
+        }
+
+        else -> modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            )
+            .padding(bottom = 14.dp)
     }
 }
