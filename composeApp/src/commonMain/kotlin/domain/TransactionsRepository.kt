@@ -13,4 +13,8 @@ interface TransactionsRepository {
     ): List<Transaction>
 
     fun getAllTransactions(): Flow<List<Transaction>>
+
+    suspend fun changeTransaction(transaction: Transaction)
+
+    suspend fun deleteTransaction(id: String)
 }

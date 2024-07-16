@@ -14,6 +14,8 @@ import domain.appcurrency.AppCurrencyRepository
 import domain.appcurrency.ChangeAppCurrencyUseCase
 import domain.appcurrency.GetAppCurrencyUseCase
 import domain.rate.RateRepository
+import domain.transactions.ChangeTransactionUseCase
+import domain.transactions.DeleteTransactionUseCase
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -41,6 +43,8 @@ object Modules {
         singleOf(::GetAppCurrencyUseCase)
         singleOf(::ChangeAppCurrencyUseCase)
         singleOf(::ConvertCurrencyUseCase)
+        singleOf(::ChangeTransactionUseCase)
+        singleOf(::DeleteTransactionUseCase)
     }
 
     val presentationModule = module {

@@ -46,4 +46,38 @@ class TransactionsRepositoryImpl(
             it.transactions.map(TransactionConverter::convert)
         }
     }
+
+    override suspend fun changeTransaction(transaction: Transaction) {
+        val protoTransaction = TransactionConverter.convert(transaction)
+
+        transactionsStore.updateData { data ->
+            val index = data.transactions.indexOfFirst { it.id == protoTransaction.id }
+
+            if (index != -1) {
+                val newTransactions = data.transactions.toMutableList().apply {
+                    set(index, protoTransaction)
+                }
+
+                data.copy(transactions = newTransactions)
+            } else {
+                data
+            }
+        }
+    }
+
+    override suspend fun deleteTransaction(id: String) {
+        transactionsStore.updateData { data ->
+            val index = data.transactions.indexOfFirst { it.id == id }
+
+            if (index != -1) {
+                val newTransactions = data.transactions.toMutableList().apply {
+                    removeAt(index)
+                }
+
+                data.copy(transactions = newTransactions)
+            } else {
+                data
+            }
+        }
+    }
 }

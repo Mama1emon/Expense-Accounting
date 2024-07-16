@@ -133,9 +133,14 @@ class MainViewModel(
                     summaryState = MainScreenState.SummaryState(
                         total = calculateTotalByCategory(filterCategory, appCurrency),
                         totalCategories = if (filterCategory == null) {
-                            transactions.map(Transaction::expenseCategory)
+                            transactions
+                                .map(Transaction::expenseCategory)
+                                .toSet()
                                 .associateWith {
-                                    calculateTotalByCategory(filterCategory, appCurrency)
+                                    calculateTotalByCategory(
+                                        category = it,
+                                        appCurrency = appCurrency
+                                    )
                                 }
                                 .toImmutableMap()
                         } else {
