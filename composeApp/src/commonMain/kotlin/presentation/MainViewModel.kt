@@ -12,6 +12,8 @@ import domain.Transaction
 import domain.appcurrency.AppCurrency
 import domain.appcurrency.ChangeAppCurrencyUseCase
 import domain.appcurrency.GetAppCurrencyUseCase
+import domain.transactions.ChangeTransactionUseCase
+import domain.transactions.DeleteTransactionUseCase
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
@@ -39,6 +41,8 @@ class MainViewModel(
     private val getAppCurrencyUseCase: GetAppCurrencyUseCase,
     private val changeAppCurrencyUseCase: ChangeAppCurrencyUseCase,
     private val convertCurrencyUseCase: ConvertCurrencyUseCase,
+    private val changeTransactionUseCase: ChangeTransactionUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(value = getInitState())
@@ -88,7 +92,9 @@ class MainViewModel(
             transactionDetailsState = MainScreenState.TransactionDetailsState(
                 availableCurrencies = availableCurrencies,
                 availableCategories = availableCategories,
-                onAddTransactionClick = ::addTransaction
+                onAddTransactionClick = ::addTransaction,
+                onChangeTransactionClick = ::changeTransaction,
+                onDeleteClick = ::deleteTransaction
             ),
             summaryState = MainScreenState.SummaryState(
                 total = "0",
@@ -188,6 +194,23 @@ class MainViewModel(
                     currency = appCurrency,
                 )
             )
+        }
+    }
+
+    private fun changeTransaction(state: MainScreenState.TransactionState) {
+        viewModelScope.launch {
+            changeTransactionUseCase(
+                id = state.id,
+                name = state.name,
+                expenseCategory = state.category,
+                amount = Amount(value = state.primaryAmount, currency = state.primaryCurrency)
+            )
+        }
+    }
+
+    private fun deleteTransaction(id: String) {
+        viewModelScope.launch {
+            deleteTransactionUseCase(id)
         }
     }
 

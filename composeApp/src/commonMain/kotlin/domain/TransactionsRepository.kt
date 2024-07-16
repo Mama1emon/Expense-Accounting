@@ -14,7 +14,12 @@ interface TransactionsRepository {
 
     fun getAllTransactions(): Flow<List<Transaction>>
 
-    suspend fun changeTransaction(transaction: Transaction)
+    suspend fun changeTransaction(
+        id: String,
+        name: String,
+        expenseCategory: ExpenseCategory,
+        amount: Amount,
+    )
 
     suspend fun deleteTransaction(id: String)
 }

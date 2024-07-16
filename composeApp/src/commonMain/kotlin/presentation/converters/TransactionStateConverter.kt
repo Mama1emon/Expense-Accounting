@@ -16,15 +16,18 @@ class TransactionStateConverter(
         return MainScreenState.TransactionState(
             id = transaction.id,
             name = transaction.name,
-            category = CategoryConverter.convert(transaction.expenseCategory),
+            category = transaction.expenseCategory,
+            categoryString = CategoryConverter.convert(transaction.expenseCategory),
             amount = AmountFormatter.formatAmount(
                 value = amount.value,
                 currency = amount.currency,
             ),
-            primaryAmount = AmountFormatter.formatAmount(
+            primaryAmount = transaction.amount.value,
+            primaryAmountString = AmountFormatter.formatAmount(
                 value = transaction.amount.value,
                 currency = transaction.amount.currency
-            )
+            ),
+            primaryCurrency = transaction.amount.currency,
         )
     }
 }

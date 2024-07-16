@@ -1,6 +1,7 @@
 package domain.transactions
 
-import domain.Transaction
+import domain.Amount
+import domain.ExpenseCategory
 import domain.TransactionsRepository
 
 /**
@@ -10,7 +11,17 @@ class ChangeTransactionUseCase(
     private val transactionsRepository: TransactionsRepository,
 ) {
 
-    suspend operator fun invoke(transaction: Transaction) {
-        transactionsRepository.changeTransaction(transaction)
+    suspend operator fun invoke(
+        id: String,
+        name: String,
+        expenseCategory: ExpenseCategory,
+        amount: Amount,
+    ) {
+        transactionsRepository.changeTransaction(
+            id = id,
+            name = name,
+            expenseCategory = expenseCategory,
+            amount = amount
+        )
     }
 }

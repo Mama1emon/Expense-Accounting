@@ -1,5 +1,4 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -36,6 +36,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import presentation.MainViewModel
 import presentation.state.MainScreenState
+import presentation.state.MainScreenState.TransactionState
 import presentation.ui.SummaryBottomSheet
 import presentation.ui.TopBarWithChips
 import presentation.ui.TransactionDetailsBottomSheet
@@ -49,6 +50,8 @@ fun App() {
 
     MaterialTheme {
         var isTxDetailsExpanded by remember { mutableStateOf(false) }
+        var txDetails: TransactionState? by remember { mutableStateOf(null) }
+
         var isSummaryExpanded by remember { mutableStateOf(false) }
 
         Box(
@@ -82,7 +85,11 @@ fun App() {
                                     currentIndex = index,
                                     lastIndex = state.transactions.lastIndex,
                                 ),
-                            state = item
+                            state = item,
+                            onClick = {
+                                txDetails = item
+                                isTxDetailsExpanded = true
+                            }
                         )
                     }
                 )
@@ -112,7 +119,11 @@ fun App() {
             TransactionDetailsBottomSheet(
                 state = state.transactionDetailsState,
                 currency = state.appCurrency,
-                onDismissRequest = { isTxDetailsExpanded = false }
+                transaction = txDetails,
+                onDismissRequest = {
+                    txDetails = null
+                    isTxDetailsExpanded = false
+                }
             )
         }
 
@@ -135,41 +146,29 @@ fun Modifier.roundedShapeItemDecoration(
     when {
         isSingleItem -> {
             modifier
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(vertical = 14.dp)
+                .clip(shape = RoundedCornerShape(16.dp))
         }
 
         currentIndex == 0 -> {
             modifier
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                .clip(
                     shape = RoundedCornerShape(
                         topStart = 16.dp,
                         topEnd = 16.dp,
                     ),
                 )
-                .padding(vertical = 14.dp)
         }
 
         currentIndex == lastIndex -> {
             modifier
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                .clip(
                     shape = RoundedCornerShape(
                         bottomStart = 16.dp,
                         bottomEnd = 16.dp,
                     ),
                 )
-                .padding(bottom = 14.dp)
         }
 
         else -> modifier
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            )
-            .padding(bottom = 14.dp)
     }
 }

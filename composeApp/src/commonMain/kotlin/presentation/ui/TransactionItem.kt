@@ -1,5 +1,7 @@
 package presentation.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +17,17 @@ import androidx.compose.ui.unit.dp
 import presentation.state.MainScreenState
 
 @Composable
-fun TransactionItem(state: MainScreenState.TransactionState, modifier: Modifier) {
-    Column(modifier = modifier.padding(horizontal = 14.dp)) {
+fun TransactionItem(
+    state: MainScreenState.TransactionState,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -45,7 +56,7 @@ fun TransactionItem(state: MainScreenState.TransactionState, modifier: Modifier)
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = state.category,
+                text = state.categoryString,
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Normal
@@ -53,7 +64,7 @@ fun TransactionItem(state: MainScreenState.TransactionState, modifier: Modifier)
             )
 
             Text(
-                text = state.primaryAmount,
+                text = state.primaryAmountString,
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Normal

@@ -28,15 +28,20 @@ data class MainScreenState(
     data class TransactionState(
         val id: String,
         val name: String,
-        val category: String,
+        val category: ExpenseCategory,
+        val categoryString: String,
         val amount: String,
-        val primaryAmount: String,
+        val primaryAmount: Double,
+        val primaryAmountString: String,
+        val primaryCurrency: AppCurrency,
     )
 
     data class TransactionDetailsState(
         val availableCurrencies: ImmutableSet<AppCurrency>,
         val availableCategories: ImmutableSet<ExpenseCategory>,
-        val onAddTransactionClick: (String, ExpenseCategory, String, AppCurrency) -> Unit
+        val onAddTransactionClick: (String, ExpenseCategory, String, AppCurrency) -> Unit,
+        val onChangeTransactionClick: (TransactionState) -> Unit,
+        val onDeleteClick: (String) -> Unit,
     )
 
     data class SummaryState(

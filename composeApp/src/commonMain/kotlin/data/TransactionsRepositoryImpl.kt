@@ -2,8 +2,10 @@ package data
 
 import androidx.datastore.core.DataStore
 import com.mama1emon.exac.Transactions
+import data.converters.CurrencyTypeConverter
 import data.converters.ExpenseCategoryConverter
 import data.converters.TransactionConverter
+import domain.Amount
 import domain.ExpenseCategory
 import domain.Transaction
 import domain.TransactionsRepository
@@ -47,15 +49,26 @@ class TransactionsRepositoryImpl(
         }
     }
 
-    override suspend fun changeTransaction(transaction: Transaction) {
-        val protoTransaction = TransactionConverter.convert(transaction)
-
+    override suspend fun changeTransaction(
+        id: String,
+        name: String,
+        expenseCategory: ExpenseCategory,
+        amount: Amount
+    ) {
         transactionsStore.updateData { data ->
-            val index = data.transactions.indexOfFirst { it.id == protoTransaction.id }
+            val index = data.transactions.indexOfFirst { it.id == id }
 
             if (index != -1) {
                 val newTransactions = data.transactions.toMutableList().apply {
-                    set(index, protoTransaction)
+                    set(
+                        index,
+                        data.transactions[index].copy(
+                            name = name,
+                            expense_category = ExpenseCategoryConverter.convert(expenseCategory),
+                            amount = amount.value,
+                            type = CurrencyTypeConverter.convert(amount.currency)
+                        )
+                    )
                 }
 
                 data.copy(transactions = newTransactions)
