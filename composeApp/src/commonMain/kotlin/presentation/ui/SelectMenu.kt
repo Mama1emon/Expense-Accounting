@@ -6,28 +6,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.window.PopupProperties
-import domain.ExpenseCategory
 import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
-fun ChooseCategoryMenu(
+inline fun <reified T : Any> SelectMenu(
     isExpanded: Boolean,
-    categories: ImmutableSet<ExpenseCategory>,
-    onCategoryClick: (ExpenseCategory) -> Unit,
-    onDismissRequest: () -> Unit,
+    items: ImmutableSet<T>,
+    crossinline onSelect: (T) -> Unit,
+    noinline onDismissRequest: () -> Unit,
 ) {
     DropdownMenu(
         expanded = isExpanded,
         onDismissRequest = onDismissRequest,
         properties = PopupProperties(focusable = true),
         content = {
-            categories.forEach {
-                key(it) {
+            items.forEach { item ->
+                key(item) {
                     DropdownMenuItem(
-                        text = {
-                            Text(text = it::class.simpleName.orEmpty())
-                        },
-                        onClick = { onCategoryClick(it) }
+                        text = { Text(text = item::class.simpleName.orEmpty()) },
+                        onClick = { onSelect(item) }
                     )
                 }
             }

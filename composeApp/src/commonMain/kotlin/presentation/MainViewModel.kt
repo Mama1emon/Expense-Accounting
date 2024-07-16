@@ -123,6 +123,7 @@ class MainViewModel(
                 _uiState.value = _uiState.value.copy(
                     appCurrency = appCurrency,
                     topBarState = uiState.value.topBarState.copy(
+                        // TODO: empty list?
                         filterCategories = transactions
                             .map(Transaction::expenseCategory)
                             .toImmutableSet(),

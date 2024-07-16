@@ -61,16 +61,16 @@ fun TransactionFilters(
         },
     )
 
-    ChooseCategoryMenu(
+    SelectMenu(
         isExpanded = isMenuExpanded,
-        categories = categories,
-        onCategoryClick = {
+        items = categories,
+        onSelect = {
             category = it
             onCategoryFilterClick(it)
             isMenuExpanded = false
         },
         onDismissRequest = {
             isMenuExpanded = false
-        },
+        }
     )
 }

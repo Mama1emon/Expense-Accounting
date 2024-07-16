@@ -159,10 +159,10 @@ fun TransactionDetailsBottomSheet(
         }
     }
 
-    ChooseCategoryMenu(
+    SelectMenu(
         isExpanded = isCategoryMenuExpanded,
-        categories = state.availableCategories,
-        onCategoryClick = {
+        items = state.availableCategories,
+        onSelect = {
             category = it
             isCategoryMenuExpanded = false
             focusManager.clearFocus()
@@ -170,10 +170,10 @@ fun TransactionDetailsBottomSheet(
         onDismissRequest = { isCategoryMenuExpanded = false },
     )
 
-    ChooseCurrencyMenu(
+    SelectMenu(
         isExpanded = isCurrencyMenuExpanded,
-        currencies = state.availableCurrencies,
-        onCurrencyClick = {
+        items = state.availableCurrencies,
+        onSelect = {
             currency = it
             isCurrencyMenuExpanded = false
             focusManager.clearFocus()
