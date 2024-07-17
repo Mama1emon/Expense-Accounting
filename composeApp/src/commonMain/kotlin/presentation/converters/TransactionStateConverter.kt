@@ -12,8 +12,8 @@ class TransactionStateConverter(
     private val amount: Amount,
 ) {
 
-    fun convert(transaction: Transaction): MainScreenState.TransactionState {
-        return MainScreenState.TransactionState(
+    fun convert(transaction: Transaction): MainScreenState.TransactionItemState.Transaction {
+        return MainScreenState.TransactionItemState.Transaction(
             id = transaction.id,
             name = transaction.name,
             category = transaction.expenseCategory,

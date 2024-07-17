@@ -47,7 +47,7 @@ import presentation.state.MainScreenState
 fun TransactionDetailsBottomSheet(
     state: MainScreenState.TransactionDetailsState,
     currency: AppCurrency,
-    transaction: MainScreenState.TransactionState?,
+    transaction: MainScreenState.TransactionItemState.Transaction?,
     onDismissRequest: () -> Unit,
 ) {
     var currency by remember { mutableStateOf(value = transaction?.primaryCurrency ?: currency) }

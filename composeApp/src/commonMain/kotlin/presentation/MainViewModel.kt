@@ -14,6 +14,7 @@ import domain.appcurrency.ChangeAppCurrencyUseCase
 import domain.appcurrency.GetAppCurrencyUseCase
 import domain.transactions.ChangeTransactionUseCase
 import domain.transactions.DeleteTransactionUseCase
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import presentation.converters.TransactionStateConverter
 import presentation.formatters.AmountFormatter
+import presentation.formatters.DateFormatter
 import presentation.state.MainScreenState
 
 /**
@@ -136,14 +138,7 @@ class MainViewModel(
                             .map(Transaction::expenseCategory)
                             .toImmutableSet(),
                     ),
-                    transactions = transactions
-                        .reversed()
-                        .map { transaction ->
-                            TransactionStateConverter(
-                                amount = convertCurrencyUseCase(transaction.amount, appCurrency)
-                            ).convert(transaction)
-                        }
-                        .toImmutableList(),
+                    transactions = createTransactionItems(transactions, appCurrency, groupBy),
                     summaryState = MainScreenState.SummaryState(
                         total = calculateTotalByCategory(filterCategory, appCurrency),
                         totalCategories = if (filterCategory == null) {
@@ -166,6 +161,55 @@ class MainViewModel(
             .launchIn(viewModelScope)
     }
 
+    private suspend fun createTransactionItems(
+        transactions: List<Transaction>,
+        appCurrency: AppCurrency,
+        groupBy: MainScreenState.Group,
+    ): ImmutableList<MainScreenState.TransactionItemState> {
+        return when (groupBy) {
+            MainScreenState.Group.Date -> {
+                buildList {
+                    transactions
+                        .sortedByDescending(Transaction::timestamp)
+                        .groupBy {
+                            DateFormatter.format(timestamp = it.timestamp)
+                        }
+                        .forEach {
+                            add(
+                                MainScreenState.TransactionItemState.Title(value = it.key)
+                            )
+
+                            addAll(
+                                it.value.map {
+                                    TransactionStateConverter(
+                                        amount = convertCurrencyUseCase(it.amount, appCurrency)
+                                    ).convert(it)
+                                }
+                            )
+                        }
+                }
+                    .toImmutableList()
+            }
+
+            else -> {
+                transactions
+                    .reversed()
+                    .map { transaction ->
+                        TransactionStateConverter(
+                            amount = convertCurrencyUseCase(transaction.amount, appCurrency)
+                        ).convert(transaction)
+                    }
+                    .toImmutableList()
+            }
+        }
+    }
+
+    private fun changeGrouping(group: MainScreenState.Group) {
+        viewModelScope.launch {
+            groupBy.value = group
+        }
+    }
+
     private suspend fun calculateTotalByCategory(
         category: ExpenseCategory?,
         appCurrency: AppCurrency,
@@ -178,12 +222,6 @@ class MainViewModel(
         )
 
         return AmountFormatter.formatAmount(total, appCurrency)
-    }
-
-    private fun changeGrouping(group: MainScreenState.Group) {
-        viewModelScope.launch {
-            groupBy.value = group
-        }
     }
 
     private fun changeAppCurrency(appCurrency: AppCurrency) {
@@ -210,7 +248,7 @@ class MainViewModel(
         }
     }
 
-    private fun changeTransaction(state: MainScreenState.TransactionState) {
+    private fun changeTransaction(state: MainScreenState.TransactionItemState.Transaction) {
         viewModelScope.launch {
             changeTransactionUseCase(
                 id = state.id,

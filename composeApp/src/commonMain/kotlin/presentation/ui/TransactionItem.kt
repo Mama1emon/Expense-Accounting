@@ -18,7 +18,7 @@ import presentation.state.MainScreenState
 
 @Composable
 fun TransactionItem(
-    state: MainScreenState.TransactionState,
+    state: MainScreenState.TransactionItemState.Transaction,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
@@ -36,6 +36,7 @@ fun TransactionItem(
                 text = state.name,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.W500
                 )

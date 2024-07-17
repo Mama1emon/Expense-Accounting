@@ -1,10 +1,12 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -36,7 +38,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import presentation.MainViewModel
 import presentation.state.MainScreenState
-import presentation.state.MainScreenState.TransactionState
 import presentation.ui.SummaryBottomSheet
 import presentation.ui.TopBarWithChips
 import presentation.ui.TransactionDetailsBottomSheet
@@ -50,7 +51,8 @@ fun App() {
 
     MaterialTheme {
         var isTxDetailsExpanded by remember { mutableStateOf(false) }
-        var txDetails: TransactionState? by remember { mutableStateOf(null) }
+        var txDetails: MainScreenState.TransactionItemState.Transaction?
+            by remember { mutableStateOf(null) }
 
         var isSummaryExpanded by remember { mutableStateOf(false) }
 
@@ -77,21 +79,53 @@ fun App() {
 
                 itemsIndexed(
                     items = state.transactions,
-                    key = { _, item -> item.id },
+                    key = { _, item ->
+                        when (item) {
+                            is MainScreenState.TransactionItemState.Title -> item.value
+                            is MainScreenState.TransactionItemState.Transaction -> item.id
+                        }
+                    },
+                    contentType = { _, item ->
+                        when (item) {
+                            is MainScreenState.TransactionItemState.Title -> "Title"
+                            is MainScreenState.TransactionItemState.Transaction -> "Transaction"
+                        }
+                    },
                     itemContent = { index, item ->
-                        TransactionItem(
-                            modifier = Modifier
-                                .animateItemPlacement()
-                                .roundedShapeItemDecoration(
-                                    currentIndex = index,
-                                    lastIndex = state.transactions.lastIndex,
-                                ),
-                            state = item,
-                            onClick = {
-                                txDetails = item
-                                isTxDetailsExpanded = true
+                        when (item) {
+                            is MainScreenState.TransactionItemState.Title -> {
+                                Text(
+                                    text = item.value,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateItemPlacement()
+                                        .roundedShapeItemDecoration(
+                                            currentIndex = index,
+                                            lastIndex = state.transactions.lastIndex,
+                                        )
+                                        .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+                                        .padding(horizontal = 14.dp)
+                                        .padding(top = 14.dp),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             }
-                        )
+
+                            is MainScreenState.TransactionItemState.Transaction -> {
+                                TransactionItem(
+                                    modifier = Modifier
+                                        .animateItemPlacement()
+                                        .roundedShapeItemDecoration(
+                                            currentIndex = index,
+                                            lastIndex = state.transactions.lastIndex,
+                                        ),
+                                    state = item,
+                                    onClick = {
+                                        txDetails = item
+                                        isTxDetailsExpanded = true
+                                    }
+                                )
+                            }
+                        }
                     }
                 )
             }
