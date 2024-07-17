@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.rounded.CurrencyExchange
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import domain.appcurrency.AppCurrency
+import kotlinx.collections.immutable.toImmutableSet
 import presentation.state.MainScreenState
 
 /**
@@ -28,9 +30,11 @@ import presentation.state.MainScreenState
 @Composable
 fun TopBarWithChips(
     state: MainScreenState.TopBarState,
+    groupBy: MainScreenState.Group,
     appCurrency: AppCurrency,
 ) {
-    var isDialogExpanded by remember { mutableStateOf(false) }
+    var isGroupingDialogExpanded by remember { mutableStateOf(value = false) }
+    var isCurrencyDialogExpanded by remember { mutableStateOf(value = false) }
 
     Column(
         modifier = Modifier
@@ -49,12 +53,22 @@ fun TopBarWithChips(
                 style = MaterialTheme.typography.titleLarge
             )
 
-            IconButton(onClick = { isDialogExpanded = true }) {
-                Icon(
-                    imageVector = Icons.Rounded.CurrencyExchange,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            Row {
+                IconButton(onClick = { isGroupingDialogExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.GridView,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                IconButton(onClick = { isCurrencyDialogExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Rounded.CurrencyExchange,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
@@ -64,12 +78,26 @@ fun TopBarWithChips(
         )
     }
 
-    if (isDialogExpanded) {
-        SelectCurrencyAlert(
-            selectedCurrency = appCurrency,
-            availableCurrencies = state.availableAppCurrencies,
+    if (isGroupingDialogExpanded) {
+        SelectAlert(
+            title = "Group by",
+            select = groupBy.name,
+            items = state.availableGroups.map(MainScreenState.Group::name).toImmutableSet(),
+            onSelect = {
+                state.onChangeGroupClick(MainScreenState.Group.valueOf(it))
+            },
+            onDismissRequest = { isGroupingDialogExpanded = false },
+        )
+    }
+
+    if (isCurrencyDialogExpanded) {
+        SelectAlert(
+            title = "Select currency",
+            select = appCurrency,
+            items = state.availableAppCurrencies,
             onSelect = state.onChangeAppCurrencyClick,
-            onDismissRequest = { isDialogExpanded = false },
+            onDismissRequest = { isCurrencyDialogExpanded = false },
         )
     }
 }
+

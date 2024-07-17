@@ -70,7 +70,8 @@ fun App() {
                 stickyHeader {
                     TopBarWithChips(
                         state = state.topBarState,
-                        appCurrency = state.appCurrency
+                        appCurrency = state.appCurrency,
+                        groupBy = state.groupBy
                     )
                 }
 

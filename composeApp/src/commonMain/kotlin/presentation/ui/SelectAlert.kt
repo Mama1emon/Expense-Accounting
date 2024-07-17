@@ -1,7 +1,10 @@
 package presentation.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -12,27 +15,30 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import domain.appcurrency.AppCurrency
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableSet
 
 /**
  * @author Andrew Khokhlov on 15/07/2024
  */
 @Composable
-fun SelectCurrencyAlert(
-    selectedCurrency: AppCurrency,
-    availableCurrencies: ImmutableSet<AppCurrency>,
-    onSelect: (AppCurrency) -> Unit,
-    onDismissRequest: () -> Unit,
+inline fun <reified T : Any> SelectAlert(
+    title: String,
+    select: T,
+    items: ImmutableSet<T>,
+    crossinline onSelect: (T) -> Unit,
+    noinline onDismissRequest: () -> Unit,
 ) {
-    var currency by mutableStateOf(value = selectedCurrency)
+    var selectedItem by mutableStateOf(value = select)
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(
                 onClick = {
-                    onSelect(currency)
+                    onSelect(selectedItem)
                     onDismissRequest()
                 }
             ) {
@@ -44,15 +50,15 @@ fun SelectCurrencyAlert(
                 Text(text = "Cancel")
             }
         },
-        title = { Text(text = "Select currency") },
+        title = { Text(text = title) },
         text = {
             Column {
-                availableCurrencies.forEach {
+                items.forEach {
                     key(it) {
-                        AppCurrencyItem(
+                        Item(
                             state = it,
-                            isSelected = it == currency,
-                            onClick = { currency = it }
+                            isSelected = it == selectedItem,
+                            onClick = { selectedItem = it }
                         )
                     }
                 }
@@ -62,16 +68,26 @@ fun SelectCurrencyAlert(
 }
 
 @Composable
-private fun AppCurrencyItem(
-    state: AppCurrency,
+inline fun <reified T : Any> Item(
+    state: T,
     isSelected: Boolean,
-    onClick: () -> Unit,
+    noinline onClick: () -> Unit,
 ) {
     Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(selected = isSelected, onClick = onClick)
+        RadioButton(selected = isSelected, onClick = { })
 
-        Text(text = state::class.simpleName.toString())
+        Text(
+            text = if (state is String) {
+                state
+            } else {
+                state::class.simpleName.toString()
+            }
+        )
     }
 }

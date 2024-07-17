@@ -11,6 +11,7 @@ import kotlinx.collections.immutable.ImmutableSet
  */
 data class MainScreenState(
     val appCurrency: AppCurrency,
+    val groupBy: Group,
     val topBarState: TopBarState,
     val transactions: ImmutableList<TransactionState>,
     val availableCategories: ImmutableSet<ExpenseCategory>,
@@ -19,11 +20,15 @@ data class MainScreenState(
 ) {
 
     data class TopBarState(
+        val availableGroups: ImmutableSet<Group>,
         val availableAppCurrencies: ImmutableSet<AppCurrency>,
         val filterCategories: ImmutableSet<ExpenseCategory>,
+        val onChangeGroupClick: (Group) -> Unit,
         val onChangeAppCurrencyClick: (AppCurrency) -> Unit,
         val onFilterByCategoryClick: (ExpenseCategory?) -> Unit,
     )
+
+    enum class Group { Date, Category, Currency }
 
     data class TransactionState(
         val id: String,

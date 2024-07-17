@@ -45,6 +45,8 @@ class MainViewModel(
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
 ) : ViewModel() {
 
+    private val groupBy = MutableStateFlow(value = MainScreenState.Group.Date)
+
     private val _uiState = MutableStateFlow(value = getInitState())
     val uiState = _uiState.asStateFlow()
 
@@ -81,9 +83,12 @@ class MainViewModel(
 
         return MainScreenState(
             appCurrency = AppCurrency.Dollar,
+            groupBy = groupBy.value,
             topBarState = MainScreenState.TopBarState(
+                availableGroups = MainScreenState.Group.entries.toImmutableSet(),
                 availableAppCurrencies = availableCurrencies,
                 filterCategories = persistentSetOf(),
+                onChangeGroupClick = ::changeGrouping,
                 onChangeAppCurrencyClick = ::changeAppCurrency,
                 onFilterByCategoryClick = ::filterByCategory,
             ),
@@ -108,20 +113,23 @@ class MainViewModel(
             flow = getAllTransactionsUseCase(),
             flow2 = filterCategory,
             flow3 = getAppCurrencyUseCase(),
-        ) { transactions, filterCategory, appCurrency ->
+            flow4 = groupBy,
+        ) { transactions, filterCategory, appCurrency, groupBy ->
             if (filterCategory == null) {
                 transactions
             } else {
                 transactions.filter { it.expenseCategory == filterCategory }
             } to filterCategory
 
-            Triple(transactions, filterCategory, appCurrency)
+            Triple(transactions, filterCategory to groupBy, appCurrency)
         }
             .onEach {
-                val (transactions, filterCategory, appCurrency) = it
+                val (transactions, filterAndCategory, appCurrency) = it
+                val (filterCategory, groupBy) = filterAndCategory
 
                 _uiState.value = _uiState.value.copy(
                     appCurrency = appCurrency,
+                    groupBy = groupBy,
                     topBarState = uiState.value.topBarState.copy(
                         // TODO: empty list?
                         filterCategories = transactions
@@ -172,6 +180,11 @@ class MainViewModel(
         return AmountFormatter.formatAmount(total, appCurrency)
     }
 
+    private fun changeGrouping(group: MainScreenState.Group) {
+        viewModelScope.launch {
+            groupBy.value = group
+        }
+    }
 
     private fun changeAppCurrency(appCurrency: AppCurrency) {
         viewModelScope.launch {
