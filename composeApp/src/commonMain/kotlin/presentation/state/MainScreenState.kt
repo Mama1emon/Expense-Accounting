@@ -47,6 +47,7 @@ data class MainScreenState(
             val primaryAmount: Double,
             val primaryAmountString: String,
             val primaryCurrency: String,
+            val timestamp: Long,
         ) : TransactionItemState
     }
 
@@ -56,7 +57,8 @@ data class MainScreenState(
             name: String,
             category: String,
             amount: String,
-            currency: String
+            currency: String,
+            timestamp: Long,
         ) -> Unit,
         val onChangeTransactionClick: (TransactionItemState.Transaction) -> Unit,
         val onDeleteClick: (String) -> Unit,

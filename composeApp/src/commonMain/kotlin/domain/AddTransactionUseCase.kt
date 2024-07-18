@@ -1,6 +1,5 @@
 package domain
 
-import kotlinx.datetime.Clock
 import utils.randomUUID
 
 /**
@@ -12,13 +11,14 @@ class AddTransactionUseCase(private val repository: TransactionsRepository) {
         name: String,
         expenseCategory: ExpenseCategory,
         amount: Amount,
+        timestamp: Long,
     ) {
         val transaction = Transaction(
             id = randomUUID(),
             name = name,
             expenseCategory = expenseCategory,
             amount = amount,
-            timestamp = Clock.System.now().toEpochMilliseconds(),
+            timestamp = timestamp,
         )
 
         repository.saveTransaction(transaction)

@@ -337,6 +337,7 @@ class MainViewModel(
         expenseCategory: String,
         amount: String,
         appCurrency: String,
+        timestamp: Long,
     ) {
         viewModelScope.launch {
             addTransactionUseCase(
@@ -345,7 +346,8 @@ class MainViewModel(
                 amount = Amount(
                     value = amount.toDouble(),
                     currency = AppCurrencyUtils.valueOf(appCurrency)
-                )
+                ),
+                timestamp = timestamp,
             )
         }
     }
@@ -359,7 +361,8 @@ class MainViewModel(
                 amount = Amount(
                     value = state.primaryAmount,
                     currency = AppCurrencyUtils.valueOf(state.primaryCurrency)
-                )
+                ),
+                timestamp = state.timestamp,
             )
         }
     }

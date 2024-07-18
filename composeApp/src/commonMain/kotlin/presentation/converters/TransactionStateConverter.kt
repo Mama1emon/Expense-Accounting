@@ -27,6 +27,7 @@ class TransactionStateConverter(
                 currency = transaction.amount.currency
             ),
             primaryCurrency = transaction.amount.currency.name,
+            timestamp = transaction.timestamp,
         )
     }
 }

@@ -19,6 +19,7 @@ interface TransactionsRepository {
         name: String,
         expenseCategory: ExpenseCategory,
         amount: Amount,
+        timestamp: Long
     )
 
     suspend fun deleteTransaction(id: String)

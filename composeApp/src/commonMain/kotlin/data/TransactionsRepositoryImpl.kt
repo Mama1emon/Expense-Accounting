@@ -55,7 +55,8 @@ class TransactionsRepositoryImpl(
         id: String,
         name: String,
         expenseCategory: ExpenseCategory,
-        amount: Amount
+        amount: Amount,
+        timestamp: Long
     ) {
         transactionsStore.updateData { data ->
             val index = data.transactions.indexOfFirst { it.id == id }
@@ -67,6 +68,7 @@ class TransactionsRepositoryImpl(
                         data.transactions[index].copy(
                             name = name,
                             expense_category = ExpenseCategoryConverter.convert(expenseCategory),
+                            timestamp = timestamp,
                             amount = amount.value,
                             type = CurrencyTypeConverter.convert(amount.currency)
                         )

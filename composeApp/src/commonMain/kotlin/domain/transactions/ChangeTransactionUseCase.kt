@@ -16,12 +16,14 @@ class ChangeTransactionUseCase(
         name: String,
         expenseCategory: ExpenseCategory,
         amount: Amount,
+        timestamp: Long,
     ) {
         transactionsRepository.changeTransaction(
             id = id,
             name = name,
             expenseCategory = expenseCategory,
-            amount = amount
+            amount = amount,
+            timestamp = timestamp
         )
     }
 }

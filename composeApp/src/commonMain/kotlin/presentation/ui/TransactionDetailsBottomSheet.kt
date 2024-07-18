@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CurrencyRuble
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EuroSymbol
@@ -32,6 +33,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import domain.appcurrency.AppCurrency
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import presentation.converters.AppCurrencyUtils
 import presentation.state.MainScreenState
 
@@ -64,11 +76,15 @@ fun TransactionDetailsBottomSheet(
     }
     var category: String? by remember { mutableStateOf(value = transaction?.category) }
 
+    var date: Long? by remember { mutableStateOf(value = transaction?.timestamp) }
+
     var isCategoryMenuExpanded by remember { mutableStateOf(value = false) }
     var isCurrencyMenuExpanded by remember { mutableStateOf(value = false) }
+    var isDatePickerVisible by remember { mutableStateOf(value = false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         sheetMaxWidth = Dp.Unspecified,
     ) {
         val focusManager = LocalFocusManager.current
@@ -194,6 +210,53 @@ fun TransactionDetailsBottomSheet(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedCard(
+                modifier = Modifier
+                    .clickable(onClick = { isDatePickerVisible = true }),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .padding(start = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AnimatedContent(date) {
+                        Text(
+                            text = it?.let {
+                                Instant
+                                    .fromEpochMilliseconds(it)
+                                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                                    .format(
+                                        LocalDateTime.Format {
+                                            monthName(MonthNames.ENGLISH_ABBREVIATED)
+                                            char(' ')
+                                            dayOfMonth(padding = Padding.NONE)
+                                        }
+                                    )
+                            } ?: "Date",
+                            color = it?.let { MaterialTheme.colorScheme.onSurface }
+                                ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+
+                    Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
             FilledTonalButton(
@@ -206,17 +269,18 @@ fun TransactionDetailsBottomSheet(
                                 name = name,
                                 category = category!!,
                                 primaryAmount = amount.toDouble(),
-                                primaryCurrency = currency
+                                primaryCurrency = currency,
+                                timestamp = date!!
                             )
                         )
                     } else {
-                        state.onAddTransactionClick(name, category!!, amount, currency)
+                        state.onAddTransactionClick(name, category!!, amount, currency, date!!)
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                enabled = name.isNotEmpty() && amount.isNotEmpty() && category != null
+                enabled = name.isNotEmpty() && amount.isNotEmpty() && category != null && date != null
             ) {
                 Text(text = if (transaction != null) "Save" else "Add")
             }
@@ -244,4 +308,15 @@ fun TransactionDetailsBottomSheet(
         },
         onDismissRequest = { isCurrencyMenuExpanded = false },
     )
+
+    if (isDatePickerVisible) {
+        EaDatePickerAlert(
+            onDismissRequest = { isDatePickerVisible = false },
+            onConfirm = {
+                date = it.atTime(0, 0)
+                    .toInstant(TimeZone.currentSystemDefault())
+                    .toEpochMilliseconds()
+            }
+        )
+    }
 }
