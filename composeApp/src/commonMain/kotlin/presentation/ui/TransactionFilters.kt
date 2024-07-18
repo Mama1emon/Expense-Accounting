@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
@@ -59,7 +60,6 @@ fun TransactionFilters(
                     filter = Filter.Category
                 }
             },
-            modifier = Modifier.weight(1f),
             enabled = categories.isNotEmpty()
         )
 
@@ -74,7 +74,6 @@ fun TransactionFilters(
                     filter = Filter.Currency
                 }
             },
-            modifier = Modifier.weight(1f),
             enabled = currencies.isNotEmpty()
         )
 
@@ -95,7 +94,6 @@ fun TransactionFilters(
                     filter = Filter.Date
                 }
             },
-            modifier = Modifier.weight(1f)
         )
     }
 
@@ -151,7 +149,11 @@ fun FilterChip(
         onClick = onClick,
         label = {
             AnimatedContent(label) {
-                Text(text = it)
+                Text(
+                    text = it,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         },
         enabled = enabled,
