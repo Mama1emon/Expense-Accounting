@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,9 +39,59 @@ import network.chaintech.kmp_date_time_picker.utils.shortMonths
 import network.chaintech.kmp_date_time_picker.utils.withDayOfMonth
 import network.chaintech.kmp_date_time_picker.utils.withMonth
 import network.chaintech.kmp_date_time_picker.utils.withYear
+import utils.getScreenWidth
 
 @Composable
-fun WheelDatePicker(
+fun EaDatePickerAlert(
+    onDismissRequest: () -> Unit,
+    onConfirm: (LocalDate) -> Unit,
+) {
+    val now = LocalDate.now()
+    var selectedDate: LocalDate by remember { mutableStateOf(value = now) }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirm(selectedDate)
+                    onDismissRequest()
+                }
+            ) {
+                Text(text = "OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(text = "Cancel")
+            }
+        },
+        text = {
+            WheelDatePicker(
+                minDate = LocalDate(
+                    year = now.year,
+                    monthNumber = now.monthNumber,
+                    dayOfMonth = 1,
+                ),
+                maxDate = now,
+                yearsRange = IntRange(start = now.year, endInclusive = now.year),
+                height = getScreenWidth() / 3,
+                rowCount = 5,
+                textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                onSnappedDate = {
+                    selectedDate = it.snappedLocalDate
+
+                    null
+                }
+            )
+        },
+        shape = RoundedCornerShape(16.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    )
+}
+
+@Composable
+private fun WheelDatePicker(
     modifier: Modifier = Modifier,
     startDate: LocalDate = LocalDate.now(),
     minDate: LocalDate = LocalDate.MIN(),
