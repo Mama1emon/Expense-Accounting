@@ -26,6 +26,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import presentation.converters.AppCurrencyUtils
 import presentation.converters.ExpenseCategoryUtils
 import presentation.converters.TransactionStateConverter
@@ -146,20 +151,28 @@ class MainViewModel(
                     filters
                         .filterValues { it != null }
                         .map {
+                            val filter = it.value!!
                             when (it.key) {
                                 Filter.Category -> {
-                                    val filterCategory = it.value
+                                    val filterCategory = filter
                                         .asFilterValue<ExpenseCategory>(Filter.Category)
 
                                     tx.expenseCategory == filterCategory
                                 }
 
                                 Filter.Date -> {
-                                    TODO()
+                                    val filterDate = filter
+                                        .asFilterValue<LocalDateTime>(Filter.Date)
+
+                                    val txDate = Instant
+                                        .fromEpochMilliseconds(tx.timestamp)
+                                        .toLocalDateTime(TimeZone.currentSystemDefault())
+
+                                    txDate.date == filterDate.date
                                 }
 
                                 Filter.Currency -> {
-                                    val filterCurrency = it.value
+                                    val filterCurrency = filter
                                         .asFilterValue<AppCurrency>(Filter.Currency)
 
                                     tx.amount.currency == filterCurrency
@@ -196,7 +209,7 @@ class MainViewModel(
                     ),
                     summaryState = createSummaryState(
                         transactions = transactions,
-                        filterCategory = filters.getFilterValue(Filter.Category),
+                        filters = filters,
                         appCurrency = appCurrency
                     )
                 )
@@ -246,11 +259,18 @@ class MainViewModel(
 
     private suspend fun createSummaryState(
         transactions: List<Transaction>,
-        filterCategory: ExpenseCategory?,
+        filters: Map<Filter, String?>,
         appCurrency: AppCurrency,
     ): MainScreenState.SummaryState {
+        val filterCategory = filters.getFilterValue<ExpenseCategory>(Filter.Category)
+        val filterDate = filters.getFilterValue<LocalDateTime>(Filter.Date)
+
         return MainScreenState.SummaryState(
-            total = calculateTotalByCategory(filterCategory, appCurrency),
+            total = calculateTotalByCategory(
+                category = filterCategory,
+                date = filterDate,
+                appCurrency = appCurrency,
+            ),
             totalCategories = if (filterCategory == null) {
                 transactions
                     .map(Transaction::expenseCategory)
@@ -261,7 +281,7 @@ class MainViewModel(
                 .map { expenseCategory ->
                     MainScreenState.SummaryState.TotalCategory(
                         category = expenseCategory.name,
-                        total = calculateTotalByCategory(expenseCategory, appCurrency)
+                        total = calculateTotalByCategory(expenseCategory, filterDate, appCurrency)
                     )
                 }
                 .toImmutableList()
@@ -276,11 +296,27 @@ class MainViewModel(
 
     private suspend fun calculateTotalByCategory(
         category: ExpenseCategory?,
+        date: LocalDateTime?,
         appCurrency: AppCurrency,
     ): String {
         val total = getCalculateExpensesUseCase(
-            startTimestamp = 0, // TODO
-            endTimestamp = Clock.System.now().toEpochMilliseconds(),
+            startTimestamp = date
+                ?.toInstant(TimeZone.currentSystemDefault())
+                ?.toEpochMilliseconds()
+                ?: 0,
+            endTimestamp = date?.let {
+                LocalDateTime(
+                    year = it.year,
+                    month = it.month,
+                    dayOfMonth = it.dayOfMonth,
+                    hour = 23,
+                    minute = 59,
+                    second = 59
+                )
+                    .toInstant(TimeZone.currentSystemDefault())
+                    .toEpochMilliseconds()
+            }
+                ?: Clock.System.now().toEpochMilliseconds(),
             category = category,
             appCurrency = appCurrency,
         )
@@ -341,14 +377,18 @@ class MainViewModel(
     }
 
     private inline fun <reified T> Map<Filter, String?>.getFilterValue(filter: Filter): T? {
-        return get(filter).asFilterValue(filter)
+        return get(filter)?.asFilterValue(filter)
     }
 
-    private inline fun <reified T> String?.asFilterValue(filter: Filter): T? {
+    private inline fun <reified T> String.asFilterValue(filter: Filter): T {
         return when (filter) {
-            Filter.Category -> this?.let { ExpenseCategoryUtils.valueOf(it) as T }
-            Filter.Date -> TODO()
-            Filter.Currency -> this?.let { AppCurrencyUtils.valueOf(it) as T }
+            Filter.Category -> ExpenseCategoryUtils.valueOf(value = this) as T
+            Filter.Currency -> AppCurrencyUtils.valueOf(value = this) as T
+            Filter.Date -> {
+                Instant
+                    .fromEpochMilliseconds(epochMilliseconds = toLong())
+                    .toLocalDateTime(TimeZone.currentSystemDefault()) as T
+            }
         }
     }
 }

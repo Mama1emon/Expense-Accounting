@@ -1,6 +1,5 @@
 package presentation.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -68,13 +67,11 @@ fun TopBarWithChips(state: MainScreenState.TopBarState, params: MainScreenState.
             }
         }
 
-        AnimatedVisibility(state.filterCategories.isNotEmpty()) {
-            TransactionFilters(
-                categories = state.filterCategories,
-                currencies = state.filterCurrencies,
-                onFilterClick = state.onFilterClick,
-            )
-        }
+        TransactionFilters(
+            categories = state.filterCategories,
+            currencies = state.filterCurrencies,
+            onFilterClick = state.onFilterClick,
+        )
     }
 
     if (isGroupingDialogExpanded) {
