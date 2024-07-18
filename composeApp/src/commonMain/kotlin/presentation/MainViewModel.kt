@@ -33,6 +33,7 @@ import presentation.converters.name
 import presentation.formatters.AmountFormatter
 import presentation.formatters.DateFormatter
 import presentation.state.MainScreenState
+import presentation.state.MainScreenState.Filter
 
 /**
  * @author Andrew Khokhlov on 11/07/2024
@@ -53,7 +54,7 @@ class MainViewModel(
     private val _uiState = MutableStateFlow(value = getInitState())
     val uiState = _uiState.asStateFlow()
 
-    private val filterCategory = MutableStateFlow<ExpenseCategory?>(value = null)
+    private val filters = MutableStateFlow(value = emptyMap<Filter, String?>())
 
     init {
         subscribeOnTransactionsUpdate()
@@ -88,9 +89,10 @@ class MainViewModel(
     private fun createInitTopBarState(): MainScreenState.TopBarState {
         return MainScreenState.TopBarState(
             filterCategories = persistentSetOf(),
+            filterCurrencies = persistentSetOf(),
             onChangeGroupClick = ::changeGrouping,
             onChangeAppCurrencyClick = ::changeAppCurrency,
-            onFilterByCategoryClick = ::filterByCategory,
+            onFilterClick = ::changeFilters,
         )
     }
 
@@ -133,21 +135,46 @@ class MainViewModel(
     private fun subscribeOnTransactionsUpdate() {
         combine(
             flow = getAllTransactionsUseCase(),
-            flow2 = filterCategory,
+            flow2 = filters,
             flow3 = getAppCurrencyUseCase(),
             flow4 = groupBy,
-        ) { transactions, filterCategory, appCurrency, groupBy ->
-            if (filterCategory == null) {
+        ) { transactions, filters, appCurrency, groupBy ->
+            val filterTransactions = if (filters.all { it.value == null }) {
                 transactions
             } else {
-                transactions.filter { it.expenseCategory == filterCategory }
-            } to filterCategory
+                transactions.filter { tx ->
+                    filters
+                        .filterValues { it != null }
+                        .map {
+                            when (it.key) {
+                                Filter.Category -> {
+                                    val filterCategory = it.value
+                                        .asFilterValue<ExpenseCategory>(Filter.Category)
 
-            Triple(transactions, filterCategory to groupBy, appCurrency)
+                                    tx.expenseCategory == filterCategory
+                                }
+
+                                Filter.Date -> {
+                                    TODO()
+                                }
+
+                                Filter.Currency -> {
+                                    val filterCurrency = it.value
+                                        .asFilterValue<AppCurrency>(Filter.Currency)
+
+                                    tx.amount.currency == filterCurrency
+                                }
+                            }
+                        }
+                        .all { it }
+                }
+            }
+
+            Triple(filterTransactions, filters to groupBy, appCurrency)
         }
             .onEach {
-                val (transactions, filterAndCategory, appCurrency) = it
-                val (filterCategory, groupBy) = filterAndCategory
+                val (transactions, filtersAndGroup, appCurrency) = it
+                val (filters, groupBy) = filtersAndGroup
 
                 _uiState.value = _uiState.value.copy(
                     params = _uiState.value.params.copy(
@@ -155,19 +182,23 @@ class MainViewModel(
                         groupBy = groupBy,
                     ),
                     topBarState = uiState.value.topBarState.copy(
-                        // TODO: empty list?
                         filterCategories = transactions
-                            .map(Transaction::expenseCategory)
-                            .map(ExpenseCategory::name)
+                            .map { it.expenseCategory.name }
+                            .toImmutableSet(),
+                        filterCurrencies = transactions
+                            .map { it.amount.currency.name }
                             .toImmutableSet(),
                     ),
                     transactions = createTransactionItems(
                         transactions = transactions,
                         appCurrency = appCurrency,
                         groupBy = groupBy,
-                        filterCategory = filterCategory
                     ),
-                    summaryState = createSummaryState(transactions, filterCategory, appCurrency)
+                    summaryState = createSummaryState(
+                        transactions = transactions,
+                        filterCategory = filters.getFilterValue(Filter.Category),
+                        appCurrency = appCurrency
+                    )
                 )
             }
             .launchIn(viewModelScope)
@@ -177,17 +208,9 @@ class MainViewModel(
         transactions: List<Transaction>,
         appCurrency: AppCurrency,
         groupBy: MainScreenState.Group,
-        filterCategory: ExpenseCategory?,
     ): ImmutableList<MainScreenState.TransactionItemState> {
         return buildList {
             transactions
-                .filter {
-                    if (filterCategory == null) {
-                        true
-                    } else {
-                        it.expenseCategory == filterCategory
-                    }
-                }
                 .sortedByDescending(Transaction::timestamp)
                 .groupBy { transaction ->
                     when (groupBy) {
@@ -229,11 +252,12 @@ class MainViewModel(
         return MainScreenState.SummaryState(
             total = calculateTotalByCategory(filterCategory, appCurrency),
             totalCategories = if (filterCategory == null) {
-                transactions.distinctBy(Transaction::expenseCategory)
+                transactions
+                    .map(Transaction::expenseCategory)
+                    .distinct()
             } else {
-                transactions.filter { it.expenseCategory == filterCategory }
+                listOf(filterCategory)
             }
-                .map(Transaction::expenseCategory)
                 .map { expenseCategory ->
                     MainScreenState.SummaryState.TotalCategory(
                         category = expenseCategory.name,
@@ -310,7 +334,21 @@ class MainViewModel(
         }
     }
 
-    private fun filterByCategory(category: String?) {
-        filterCategory.value = category?.let(ExpenseCategoryUtils::valueOf)
+    private fun changeFilters(filter: Filter, value: String?) {
+        filters.value = filters.value.toMutableMap().apply {
+            this[filter] = value
+        }
+    }
+
+    private inline fun <reified T> Map<Filter, String?>.getFilterValue(filter: Filter): T? {
+        return get(filter).asFilterValue(filter)
+    }
+
+    private inline fun <reified T> String?.asFilterValue(filter: Filter): T? {
+        return when (filter) {
+            Filter.Category -> this?.let { ExpenseCategoryUtils.valueOf(it) as T }
+            Filter.Date -> TODO()
+            Filter.Currency -> this?.let { AppCurrencyUtils.valueOf(it) as T }
+        }
     }
 }

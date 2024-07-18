@@ -23,14 +23,17 @@ data class MainScreenState(
 
     data class TopBarState(
         val filterCategories: ImmutableSet<String>,
+        val filterCurrencies: ImmutableSet<String>,
         val onChangeGroupClick: (Group) -> Unit,
         val onChangeAppCurrencyClick: (String) -> Unit,
-        val onFilterByCategoryClick: (String?) -> Unit,
+        val onFilterClick: (Filter, String?) -> Unit,
     ) {
         val availableGroups: ImmutableSet<Group> = Group.entries.toImmutableSet()
     }
 
     enum class Group { Date, Category, Currency }
+
+    enum class Filter { Category, Date, Currency }
 
     sealed interface TransactionItemState {
 
