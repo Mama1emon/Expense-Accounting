@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import presentation.converters.CategoryConverter
 import presentation.converters.TransactionStateConverter
 import presentation.formatters.AmountFormatter
 import presentation.formatters.DateFormatter
@@ -138,7 +139,12 @@ class MainViewModel(
                             .map(Transaction::expenseCategory)
                             .toImmutableSet(),
                     ),
-                    transactions = createTransactionItems(transactions, appCurrency, groupBy),
+                    transactions = createTransactionItems(
+                        transactions = transactions,
+                        appCurrency = appCurrency,
+                        groupBy = groupBy,
+                        filterCategory = filterCategory
+                    ),
                     summaryState = MainScreenState.SummaryState(
                         total = calculateTotalByCategory(filterCategory, appCurrency),
                         totalCategories = if (filterCategory == null) {
@@ -165,43 +171,48 @@ class MainViewModel(
         transactions: List<Transaction>,
         appCurrency: AppCurrency,
         groupBy: MainScreenState.Group,
+        filterCategory: ExpenseCategory?,
     ): ImmutableList<MainScreenState.TransactionItemState> {
-        return when (groupBy) {
-            MainScreenState.Group.Date -> {
-                buildList {
-                    transactions
-                        .sortedByDescending(Transaction::timestamp)
-                        .groupBy {
-                            DateFormatter.format(timestamp = it.timestamp)
-                        }
-                        .forEach {
-                            add(
-                                MainScreenState.TransactionItemState.Title(value = it.key)
-                            )
-
-                            addAll(
-                                it.value.map {
-                                    TransactionStateConverter(
-                                        amount = convertCurrencyUseCase(it.amount, appCurrency)
-                                    ).convert(it)
-                                }
-                            )
-                        }
-                }
-                    .toImmutableList()
-            }
-
-            else -> {
-                transactions
-                    .reversed()
-                    .map { transaction ->
-                        TransactionStateConverter(
-                            amount = convertCurrencyUseCase(transaction.amount, appCurrency)
-                        ).convert(transaction)
+        return buildList {
+            transactions
+                .filter {
+                    if (filterCategory == null) {
+                        true
+                    } else {
+                        it.expenseCategory == filterCategory
                     }
-                    .toImmutableList()
-            }
+                }
+                .sortedByDescending(Transaction::timestamp)
+                .groupBy { transaction ->
+                    when (groupBy) {
+                        MainScreenState.Group.Date -> {
+                            DateFormatter.format(timestamp = transaction.timestamp)
+                        }
+
+                        MainScreenState.Group.Category -> {
+                            CategoryConverter.convert(transaction.expenseCategory)
+                        }
+
+                        MainScreenState.Group.Currency -> {
+                            transaction.amount.currency::class.simpleName.toString()
+                        }
+                    }
+                }
+                .forEach {
+                    add(
+                        MainScreenState.TransactionItemState.Title(value = it.key)
+                    )
+
+                    addAll(
+                        it.value.map {
+                            TransactionStateConverter(
+                                amount = convertCurrencyUseCase(it.amount, appCurrency)
+                            ).convert(it)
+                        }
+                    )
+                }
         }
+            .toImmutableList()
     }
 
     private fun changeGrouping(group: MainScreenState.Group) {

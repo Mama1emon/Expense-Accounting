@@ -1,3 +1,4 @@
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -94,30 +97,25 @@ fun App() {
                     itemContent = { index, item ->
                         when (item) {
                             is MainScreenState.TransactionItemState.Title -> {
-                                Text(
-                                    text = item.value,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .animateItemPlacement()
-                                        .roundedShapeItemDecoration(
-                                            currentIndex = index,
-                                            lastIndex = state.transactions.lastIndex,
+                                AnimatedContent(targetState = item.value) {
+                                    Text(
+                                        text = it,
+                                        modifier = transactionItemModifier(
+                                            index = index,
+                                            lastIndex = state.transactions.lastIndex
                                         )
-                                        .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
-                                        .padding(horizontal = 14.dp)
-                                        .padding(top = 14.dp),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                                            .padding(top = 14.dp),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
                             }
 
                             is MainScreenState.TransactionItemState.Transaction -> {
                                 TransactionItem(
-                                    modifier = Modifier
-                                        .animateItemPlacement()
-                                        .roundedShapeItemDecoration(
-                                            currentIndex = index,
-                                            lastIndex = state.transactions.lastIndex,
-                                        ),
+                                    modifier = transactionItemModifier(
+                                        index = index,
+                                        lastIndex = state.transactions.lastIndex
+                                    ),
                                     state = item,
                                     onClick = {
                                         txDetails = item
@@ -169,6 +167,18 @@ fun App() {
             )
         }
     }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+@ReadOnlyComposable
+fun LazyItemScope.transactionItemModifier(index: Int, lastIndex: Int): Modifier {
+    return Modifier
+        .fillMaxWidth()
+        .animateItemPlacement()
+        .roundedShapeItemDecoration(currentIndex = index, lastIndex = lastIndex)
+        .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+        .padding(horizontal = 14.dp)
 }
 
 fun Modifier.roundedShapeItemDecoration(

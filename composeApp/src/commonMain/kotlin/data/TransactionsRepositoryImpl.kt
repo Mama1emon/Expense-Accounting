@@ -20,7 +20,9 @@ class TransactionsRepositoryImpl(
     override suspend fun saveTransaction(transaction: Transaction) {
         val protoTransaction = TransactionConverter.convert(transaction)
 
-        transactionsStore.updateData { it.copy(transactions = it.transactions + protoTransaction) }
+        transactionsStore.updateData {
+            it.copy(transactions = listOf(protoTransaction) + it.transactions)
+        }
     }
 
     override suspend fun getCategoryTransactions(
