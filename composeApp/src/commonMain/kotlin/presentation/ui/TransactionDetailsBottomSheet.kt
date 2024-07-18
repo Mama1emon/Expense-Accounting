@@ -38,20 +38,22 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import domain.ExpenseCategory
 import domain.appcurrency.AppCurrency
+import presentation.converters.AppCurrencyUtils
 import presentation.state.MainScreenState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailsBottomSheet(
     state: MainScreenState.TransactionDetailsState,
-    currency: AppCurrency,
+    params: MainScreenState.BaseParams,
     transaction: MainScreenState.TransactionItemState.Transaction?,
     onDismissRequest: () -> Unit,
 ) {
-    var currency by remember { mutableStateOf(value = transaction?.primaryCurrency ?: currency) }
-    var category: ExpenseCategory? by remember { mutableStateOf(value = transaction?.category) }
+    var currency by remember {
+        mutableStateOf(value = transaction?.primaryCurrency ?: params.appCurrency)
+    }
+    var category: String? by remember { mutableStateOf(value = transaction?.category) }
 
     var isCategoryMenuExpanded by remember { mutableStateOf(value = false) }
     var isCurrencyMenuExpanded by remember { mutableStateOf(value = false) }
@@ -122,7 +124,7 @@ fun TransactionDetailsBottomSheet(
                     IconButton(onClick = { isCurrencyMenuExpanded = true }) {
                         AnimatedContent(currency) {
                             Icon(
-                                imageVector = when (it) {
+                                imageVector = when (AppCurrencyUtils.valueOf(it)) {
                                     AppCurrency.Dollar -> Icons.Outlined.AttachMoney
                                     AppCurrency.Euro -> Icons.Outlined.EuroSymbol
                                     AppCurrency.Ruble -> Icons.Outlined.CurrencyRuble
@@ -149,7 +151,7 @@ fun TransactionDetailsBottomSheet(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = category?.let { it::class.simpleName }.orEmpty(),
+                value = category.orEmpty(),
                 onValueChange = { isCategoryMenuExpanded = true },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
@@ -210,7 +212,7 @@ fun TransactionDetailsBottomSheet(
 
     SelectMenu(
         isExpanded = isCurrencyMenuExpanded,
-        items = state.availableCurrencies,
+        items = params.availableAppCurrencies,
         onSelect = {
             currency = it
             isCurrencyMenuExpanded = false

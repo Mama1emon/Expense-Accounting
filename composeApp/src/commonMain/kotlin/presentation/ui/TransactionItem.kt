@@ -24,6 +24,7 @@ fun TransactionItem(
     Column(
         modifier = modifier
             .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp)
             .padding(vertical = 8.dp)
     ) {
         Row(
@@ -55,7 +56,7 @@ fun TransactionItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = state.categoryString,
+                text = state.category,
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Normal

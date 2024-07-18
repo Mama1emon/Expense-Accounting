@@ -72,13 +72,7 @@ fun App() {
                     bottom = with(density) { bottomOffset.toDp() },
                 ),
             ) {
-                stickyHeader {
-                    TopBarWithChips(
-                        state = state.topBarState,
-                        appCurrency = state.appCurrency,
-                        groupBy = state.groupBy
-                    )
-                }
+                stickyHeader { TopBarWithChips(state = state.topBarState, params = state.params) }
 
                 itemsIndexed(
                     items = state.transactions,
@@ -104,6 +98,7 @@ fun App() {
                                             index = index,
                                             lastIndex = state.transactions.lastIndex
                                         )
+                                            .padding(horizontal = 14.dp)
                                             .padding(top = 14.dp),
                                         style = MaterialTheme.typography.titleMedium
                                     )
@@ -151,7 +146,7 @@ fun App() {
         if (isTxDetailsExpanded) {
             TransactionDetailsBottomSheet(
                 state = state.transactionDetailsState,
-                currency = state.appCurrency,
+                params = state.params,
                 transaction = txDetails,
                 onDismissRequest = {
                     txDetails = null
@@ -178,7 +173,6 @@ fun LazyItemScope.transactionItemModifier(index: Int, lastIndex: Int): Modifier 
         .animateItemPlacement()
         .roundedShapeItemDecoration(currentIndex = index, lastIndex = lastIndex)
         .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
-        .padding(horizontal = 14.dp)
 }
 
 fun Modifier.roundedShapeItemDecoration(

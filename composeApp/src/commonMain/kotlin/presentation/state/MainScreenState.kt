@@ -1,32 +1,34 @@
 package presentation.state
 
-import domain.ExpenseCategory
-import domain.appcurrency.AppCurrency
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.toImmutableSet
 
 /**
  * @author Andrew Khokhlov on 11/07/2024
  */
 data class MainScreenState(
-    val appCurrency: AppCurrency,
-    val groupBy: Group,
+    val params: BaseParams,
     val topBarState: TopBarState,
     val transactions: ImmutableList<TransactionItemState>,
-    val availableCategories: ImmutableSet<ExpenseCategory>,
     val transactionDetailsState: TransactionDetailsState,
     val summaryState: SummaryState,
 ) {
 
-    data class TopBarState(
-        val availableGroups: ImmutableSet<Group>,
-        val availableAppCurrencies: ImmutableSet<AppCurrency>,
-        val filterCategories: ImmutableSet<ExpenseCategory>,
-        val onChangeGroupClick: (Group) -> Unit,
-        val onChangeAppCurrencyClick: (AppCurrency) -> Unit,
-        val onFilterByCategoryClick: (ExpenseCategory?) -> Unit,
+    data class BaseParams(
+        val appCurrency: String,
+        val availableAppCurrencies: ImmutableSet<String>,
+        val groupBy: Group,
     )
+
+    data class TopBarState(
+        val filterCategories: ImmutableSet<String>,
+        val onChangeGroupClick: (Group) -> Unit,
+        val onChangeAppCurrencyClick: (String) -> Unit,
+        val onFilterByCategoryClick: (String?) -> Unit,
+    ) {
+        val availableGroups: ImmutableSet<Group> = Group.entries.toImmutableSet()
+    }
 
     enum class Group { Date, Category, Currency }
 
@@ -37,25 +39,31 @@ data class MainScreenState(
         data class Transaction(
             val id: String,
             val name: String,
-            val category: ExpenseCategory,
-            val categoryString: String,
+            val category: String,
             val amount: String,
             val primaryAmount: Double,
             val primaryAmountString: String,
-            val primaryCurrency: AppCurrency,
+            val primaryCurrency: String,
         ) : TransactionItemState
     }
 
     data class TransactionDetailsState(
-        val availableCurrencies: ImmutableSet<AppCurrency>,
-        val availableCategories: ImmutableSet<ExpenseCategory>,
-        val onAddTransactionClick: (String, ExpenseCategory, String, AppCurrency) -> Unit,
+        val availableCategories: ImmutableSet<String>,
+        val onAddTransactionClick: (
+            name: String,
+            category: String,
+            amount: String,
+            currency: String
+        ) -> Unit,
         val onChangeTransactionClick: (TransactionItemState.Transaction) -> Unit,
         val onDeleteClick: (String) -> Unit,
     )
 
     data class SummaryState(
         val total: String,
-        val totalCategories: ImmutableMap<ExpenseCategory, String>,
-    )
+        val totalCategories: ImmutableList<TotalCategory>,
+    ) {
+
+        data class TotalCategory(val category: String, val total: String)
+    }
 }

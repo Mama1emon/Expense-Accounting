@@ -14,16 +14,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import domain.ExpenseCategory
 import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
 fun TransactionFilters(
-    categories: ImmutableSet<ExpenseCategory>,
-    onCategoryFilterClick: (ExpenseCategory?) -> Unit
+    categories: ImmutableSet<String>,
+    onCategoryFilterClick: (String?) -> Unit
 ) {
     var isMenuExpanded by remember { mutableStateOf(value = false) }
-    var category: ExpenseCategory? by remember { mutableStateOf(value = null) }
+    var category: String? by remember { mutableStateOf(value = null) }
 
     FilterChip(
         selected = category != null,
@@ -37,13 +36,7 @@ fun TransactionFilters(
         },
         label = {
             AnimatedContent(category) { animatedCategory ->
-                Text(
-                    text = if (animatedCategory != null) {
-                        animatedCategory::class.simpleName.orEmpty()
-                    } else {
-                        "Category"
-                    }
-                )
+                Text(text = animatedCategory ?: "Category")
             }
         },
         modifier = Modifier.animateContentSize(),

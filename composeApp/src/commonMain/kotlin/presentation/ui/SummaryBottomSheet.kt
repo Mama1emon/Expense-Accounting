@@ -41,16 +41,16 @@ fun SummaryBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            summaryState.totalCategories.forEach { (category, amount) ->
+            summaryState.totalCategories.forEach { totalCategory ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "– " + category::class.simpleName.orEmpty(),
+                        text = "– ${totalCategory.category}",
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Text(text = amount)
+                    Text(text = totalCategory.total)
                 }
             }
 

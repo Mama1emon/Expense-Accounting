@@ -26,12 +26,12 @@ import kotlinx.collections.immutable.ImmutableSet
  * @author Andrew Khokhlov on 15/07/2024
  */
 @Composable
-inline fun <reified T : Any> SelectAlert(
+fun SelectAlert(
     title: String,
-    select: T,
-    items: ImmutableSet<T>,
-    crossinline onSelect: (T) -> Unit,
-    noinline onDismissRequest: () -> Unit,
+    select: String,
+    items: ImmutableSet<String>,
+    onSelect: (String) -> Unit,
+    onDismissRequest: () -> Unit,
 ) {
     var selectedItem by mutableStateOf(value = select)
 
@@ -70,11 +70,7 @@ inline fun <reified T : Any> SelectAlert(
 }
 
 @Composable
-inline fun <reified T : Any> Item(
-    state: T,
-    isSelected: Boolean,
-    noinline onClick: () -> Unit,
-) {
+private fun Item(state: String, isSelected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
@@ -86,12 +82,6 @@ inline fun <reified T : Any> Item(
     ) {
         RadioButton(selected = isSelected, onClick = null)
 
-        Text(
-            text = if (state is String) {
-                state
-            } else {
-                state::class.simpleName.toString()
-            }
-        )
+        Text(text = state)
     }
 }

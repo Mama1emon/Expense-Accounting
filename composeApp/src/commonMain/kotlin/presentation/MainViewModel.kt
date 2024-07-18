@@ -16,10 +16,8 @@ import domain.transactions.ChangeTransactionUseCase
 import domain.transactions.DeleteTransactionUseCase
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,8 +26,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import presentation.converters.CategoryConverter
+import presentation.converters.AppCurrencyUtils
+import presentation.converters.ExpenseCategoryUtils
 import presentation.converters.TransactionStateConverter
+import presentation.converters.name
 import presentation.formatters.AmountFormatter
 import presentation.formatters.DateFormatter
 import presentation.state.MainScreenState
@@ -59,14 +59,42 @@ class MainViewModel(
         subscribeOnTransactionsUpdate()
     }
 
+    // region Primary state initialization
     private fun getInitState(): MainScreenState {
-        val availableCurrencies = persistentSetOf(
-            AppCurrency.Dollar,
-            AppCurrency.Euro,
-            AppCurrency.Ruble,
-            AppCurrency.IndonesianRupiah,
+        return MainScreenState(
+            params = createInitBaseParams(),
+            topBarState = createInitTopBarState(),
+            transactions = persistentListOf(),
+            transactionDetailsState = createInitTransactionDetailsState(),
+            summaryState = createInitSummaryState(),
         )
+    }
 
+    private fun createInitBaseParams(): MainScreenState.BaseParams {
+        return MainScreenState.BaseParams(
+            appCurrency = AppCurrency.Dollar.name,
+            availableAppCurrencies = persistentSetOf(
+                AppCurrency.Dollar,
+                AppCurrency.Euro,
+                AppCurrency.Ruble,
+                AppCurrency.IndonesianRupiah,
+            )
+                .map(AppCurrency::name)
+                .toImmutableSet(),
+            groupBy = groupBy.value,
+        )
+    }
+
+    private fun createInitTopBarState(): MainScreenState.TopBarState {
+        return MainScreenState.TopBarState(
+            filterCategories = persistentSetOf(),
+            onChangeGroupClick = ::changeGrouping,
+            onChangeAppCurrencyClick = ::changeAppCurrency,
+            onFilterByCategoryClick = ::filterByCategory,
+        )
+    }
+
+    private fun createInitTransactionDetailsState(): MainScreenState.TransactionDetailsState {
         val availableCategories = persistentSetOf(
             ExpenseCategory.Housing,
             ExpenseCategory.Transport,
@@ -84,32 +112,23 @@ class MainViewModel(
             ExpenseCategory.Other,
         )
 
-        return MainScreenState(
-            appCurrency = AppCurrency.Dollar,
-            groupBy = groupBy.value,
-            topBarState = MainScreenState.TopBarState(
-                availableGroups = MainScreenState.Group.entries.toImmutableSet(),
-                availableAppCurrencies = availableCurrencies,
-                filterCategories = persistentSetOf(),
-                onChangeGroupClick = ::changeGrouping,
-                onChangeAppCurrencyClick = ::changeAppCurrency,
-                onFilterByCategoryClick = ::filterByCategory,
-            ),
-            transactions = persistentListOf(),
-            availableCategories = availableCategories,
-            transactionDetailsState = MainScreenState.TransactionDetailsState(
-                availableCurrencies = availableCurrencies,
-                availableCategories = availableCategories,
-                onAddTransactionClick = ::addTransaction,
-                onChangeTransactionClick = ::changeTransaction,
-                onDeleteClick = ::deleteTransaction
-            ),
-            summaryState = MainScreenState.SummaryState(
-                total = "0",
-                totalCategories = persistentMapOf()
-            ),
+        return MainScreenState.TransactionDetailsState(
+            availableCategories = availableCategories
+                .map(ExpenseCategory::name)
+                .toImmutableSet(),
+            onAddTransactionClick = ::addTransaction,
+            onChangeTransactionClick = ::changeTransaction,
+            onDeleteClick = ::deleteTransaction
         )
     }
+
+    private fun createInitSummaryState(): MainScreenState.SummaryState {
+        return MainScreenState.SummaryState(
+            total = "0",
+            totalCategories = persistentListOf()
+        )
+    }
+    // endregion
 
     private fun subscribeOnTransactionsUpdate() {
         combine(
@@ -131,12 +150,15 @@ class MainViewModel(
                 val (filterCategory, groupBy) = filterAndCategory
 
                 _uiState.value = _uiState.value.copy(
-                    appCurrency = appCurrency,
-                    groupBy = groupBy,
+                    params = _uiState.value.params.copy(
+                        appCurrency = appCurrency.name,
+                        groupBy = groupBy,
+                    ),
                     topBarState = uiState.value.topBarState.copy(
                         // TODO: empty list?
                         filterCategories = transactions
                             .map(Transaction::expenseCategory)
+                            .map(ExpenseCategory::name)
                             .toImmutableSet(),
                     ),
                     transactions = createTransactionItems(
@@ -145,23 +167,7 @@ class MainViewModel(
                         groupBy = groupBy,
                         filterCategory = filterCategory
                     ),
-                    summaryState = MainScreenState.SummaryState(
-                        total = calculateTotalByCategory(filterCategory, appCurrency),
-                        totalCategories = if (filterCategory == null) {
-                            transactions
-                                .map(Transaction::expenseCategory)
-                                .toSet()
-                                .associateWith {
-                                    calculateTotalByCategory(
-                                        category = it,
-                                        appCurrency = appCurrency
-                                    )
-                                }
-                                .toImmutableMap()
-                        } else {
-                            persistentMapOf()
-                        }
-                    )
+                    summaryState = createSummaryState(transactions, filterCategory, appCurrency)
                 )
             }
             .launchIn(viewModelScope)
@@ -190,7 +196,7 @@ class MainViewModel(
                         }
 
                         MainScreenState.Group.Category -> {
-                            CategoryConverter.convert(transaction.expenseCategory)
+                            transaction.expenseCategory.name
                         }
 
                         MainScreenState.Group.Currency -> {
@@ -215,6 +221,29 @@ class MainViewModel(
             .toImmutableList()
     }
 
+    private suspend fun createSummaryState(
+        transactions: List<Transaction>,
+        filterCategory: ExpenseCategory?,
+        appCurrency: AppCurrency,
+    ): MainScreenState.SummaryState {
+        return MainScreenState.SummaryState(
+            total = calculateTotalByCategory(filterCategory, appCurrency),
+            totalCategories = if (filterCategory == null) {
+                transactions.distinctBy(Transaction::expenseCategory)
+            } else {
+                transactions.filter { it.expenseCategory == filterCategory }
+            }
+                .map(Transaction::expenseCategory)
+                .map { expenseCategory ->
+                    MainScreenState.SummaryState.TotalCategory(
+                        category = expenseCategory.name,
+                        total = calculateTotalByCategory(expenseCategory, appCurrency)
+                    )
+                }
+                .toImmutableList()
+        )
+    }
+
     private fun changeGrouping(group: MainScreenState.Group) {
         viewModelScope.launch {
             groupBy.value = group
@@ -235,25 +264,27 @@ class MainViewModel(
         return AmountFormatter.formatAmount(total, appCurrency)
     }
 
-    private fun changeAppCurrency(appCurrency: AppCurrency) {
+    private fun changeAppCurrency(appCurrency: String) {
         viewModelScope.launch {
-            changeAppCurrencyUseCase(appCurrency)
+            changeAppCurrencyUseCase(
+                appCurrency = AppCurrencyUtils.valueOf(appCurrency),
+            )
         }
     }
 
     private fun addTransaction(
         name: String,
-        expenseCategory: ExpenseCategory,
+        expenseCategory: String,
         amount: String,
-        appCurrency: AppCurrency
+        appCurrency: String,
     ) {
         viewModelScope.launch {
             addTransactionUseCase(
                 name = name,
-                expenseCategory = expenseCategory,
+                expenseCategory = ExpenseCategoryUtils.valueOf(expenseCategory),
                 amount = Amount(
                     value = amount.toDouble(),
-                    currency = appCurrency,
+                    currency = AppCurrencyUtils.valueOf(appCurrency)
                 )
             )
         }
@@ -264,8 +295,11 @@ class MainViewModel(
             changeTransactionUseCase(
                 id = state.id,
                 name = state.name,
-                expenseCategory = state.category,
-                amount = Amount(value = state.primaryAmount, currency = state.primaryCurrency)
+                expenseCategory = ExpenseCategoryUtils.valueOf(state.category),
+                amount = Amount(
+                    value = state.primaryAmount,
+                    currency = AppCurrencyUtils.valueOf(state.primaryCurrency)
+                )
             )
         }
     }
@@ -276,7 +310,7 @@ class MainViewModel(
         }
     }
 
-    private fun filterByCategory(category: ExpenseCategory?) {
-        filterCategory.value = category
+    private fun filterByCategory(category: String?) {
+        filterCategory.value = category?.let(ExpenseCategoryUtils::valueOf)
     }
 }

@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import domain.appcurrency.AppCurrency
 import kotlinx.collections.immutable.toImmutableSet
 import presentation.state.MainScreenState
 
@@ -28,11 +27,7 @@ import presentation.state.MainScreenState
  * @author Andrew Khokhlov on 15/07/2024
  */
 @Composable
-fun TopBarWithChips(
-    state: MainScreenState.TopBarState,
-    groupBy: MainScreenState.Group,
-    appCurrency: AppCurrency,
-) {
+fun TopBarWithChips(state: MainScreenState.TopBarState, params: MainScreenState.BaseParams) {
     var isGroupingDialogExpanded by remember { mutableStateOf(value = false) }
     var isCurrencyDialogExpanded by remember { mutableStateOf(value = false) }
 
@@ -81,7 +76,7 @@ fun TopBarWithChips(
     if (isGroupingDialogExpanded) {
         SelectAlert(
             title = "Group by",
-            select = groupBy.name,
+            select = params.groupBy.name,
             items = state.availableGroups.map(MainScreenState.Group::name).toImmutableSet(),
             onSelect = {
                 state.onChangeGroupClick(MainScreenState.Group.valueOf(it))
@@ -93,8 +88,8 @@ fun TopBarWithChips(
     if (isCurrencyDialogExpanded) {
         SelectAlert(
             title = "Select currency",
-            select = appCurrency,
-            items = state.availableAppCurrencies,
+            select = params.appCurrency,
+            items = params.availableAppCurrencies,
             onSelect = state.onChangeAppCurrencyClick,
             onDismissRequest = { isCurrencyDialogExpanded = false },
         )

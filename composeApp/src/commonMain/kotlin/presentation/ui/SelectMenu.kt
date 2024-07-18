@@ -9,11 +9,11 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
-inline fun <reified T : Any> SelectMenu(
+fun SelectMenu(
     isExpanded: Boolean,
-    items: ImmutableSet<T>,
-    crossinline onSelect: (T) -> Unit,
-    noinline onDismissRequest: () -> Unit,
+    items: ImmutableSet<String>,
+    onSelect: (String) -> Unit,
+    onDismissRequest: () -> Unit,
 ) {
     DropdownMenu(
         expanded = isExpanded,
@@ -23,7 +23,7 @@ inline fun <reified T : Any> SelectMenu(
             items.forEach { item ->
                 key(item) {
                     DropdownMenuItem(
-                        text = { Text(text = item::class.simpleName.orEmpty()) },
+                        text = { Text(text = item) },
                         onClick = { onSelect(item) }
                     )
                 }
