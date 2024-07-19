@@ -22,3 +22,11 @@ val AppCurrency.name: String
         AppCurrency.IndonesianRupiah -> "Indonesian Rupiah"
         AppCurrency.Ruble -> "Ruble"
     }
+
+val AppCurrency.symbol: String
+    get() = when (this) {
+        AppCurrency.Dollar -> "$"
+        AppCurrency.Euro -> "€"
+        AppCurrency.IndonesianRupiah -> "Rp"
+        AppCurrency.Ruble -> "₽"
+    }
