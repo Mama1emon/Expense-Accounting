@@ -22,7 +22,10 @@ data class MainScreenState(
     )
 
     data class TopBarState(
+        val month: String,
+        val availableMonths: ImmutableSet<String>,
         val transactionFiltersState: TransactionFiltersState,
+        val onChangeMonthClick: (String) -> Unit,
         val onChangeGroupClick: (Group) -> Unit,
         val onChangeAppCurrencyClick: (String) -> Unit,
     ) {

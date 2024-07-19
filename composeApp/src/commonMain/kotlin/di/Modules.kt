@@ -4,6 +4,7 @@ import data.AppCurrencyRepositoryImpl
 import data.MockRateRepository
 import data.TransactionsRepositoryImpl
 import data.local.getAppCurrencyStore
+import data.local.getPreferenceStore
 import data.local.getTransactionsStore
 import domain.AddTransactionUseCase
 import domain.CalculateExpensesUseCase
@@ -14,6 +15,8 @@ import domain.appcurrency.AppCurrencyRepository
 import domain.appcurrency.ChangeAppCurrencyUseCase
 import domain.appcurrency.GetAppCurrencyUseCase
 import domain.rate.RateRepository
+import domain.selectedmonth.ChangeSelectedMonthUseCase
+import domain.selectedmonth.GetSelectedMonthUseCase
 import domain.transactions.ChangeTransactionUseCase
 import domain.transactions.DeleteTransactionUseCase
 import org.koin.compose.viewmodel.dsl.viewModelOf
@@ -27,6 +30,8 @@ import presentation.MainViewModel
 object Modules {
 
     val dataModule = module {
+        single { getPreferenceStore() }
+
         single { TransactionsRepositoryImpl(transactionsStore = getTransactionsStore()) }
             .bind<TransactionsRepository>()
 
@@ -45,6 +50,8 @@ object Modules {
         singleOf(::ConvertCurrencyUseCase)
         singleOf(::ChangeTransactionUseCase)
         singleOf(::DeleteTransactionUseCase)
+        singleOf(::ChangeSelectedMonthUseCase)
+        singleOf(::GetSelectedMonthUseCase)
     }
 
     val presentationModule = module {

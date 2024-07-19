@@ -12,6 +12,6 @@ internal fun <T> createDataStore(
     return create(FileSystem.SYSTEM, ::producePath)
 }
 
-private fun producePath(fileName: String): Path {
+internal fun producePath(fileName: String): Path {
     return AndroidPlatformContextProvider.context.filesDir.resolve(fileName).absolutePath.toPath()
 }

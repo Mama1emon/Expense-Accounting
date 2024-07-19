@@ -16,7 +16,7 @@ internal fun <T> createDataStore(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun producePath(fileName: String): Path {
+internal fun producePath(fileName: String): Path {
     val documentDirectory = NSFileManager.defaultManager.URLForDirectory(
         directory = NSDocumentDirectory,
         inDomain = NSUserDomainMask,

@@ -12,6 +12,8 @@ import domain.Transaction
 import domain.appcurrency.AppCurrency
 import domain.appcurrency.ChangeAppCurrencyUseCase
 import domain.appcurrency.GetAppCurrencyUseCase
+import domain.selectedmonth.ChangeSelectedMonthUseCase
+import domain.selectedmonth.GetSelectedMonthUseCase
 import domain.transactions.ChangeTransactionUseCase
 import domain.transactions.DeleteTransactionUseCase
 import kotlinx.collections.immutable.ImmutableList
@@ -29,6 +31,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import presentation.converters.AppCurrencyUtils
@@ -52,6 +55,8 @@ class MainViewModel(
     private val convertCurrencyUseCase: ConvertCurrencyUseCase,
     private val changeTransactionUseCase: ChangeTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val getSelectedMonthUseCase: GetSelectedMonthUseCase,
+    private val changeSelectedMonthUseCase: ChangeSelectedMonthUseCase,
 ) : ViewModel() {
 
     private val groupBy = MutableStateFlow(value = MainScreenState.Group.Date)
@@ -93,6 +98,8 @@ class MainViewModel(
 
     private fun createInitTopBarState(): MainScreenState.TopBarState {
         return MainScreenState.TopBarState(
+            month = "",
+            availableMonths = MonthNames.ENGLISH_FULL.names.toImmutableSet(), // TODO
             transactionFiltersState = MainScreenState.TransactionFiltersState(
                 filterCategories = persistentSetOf(),
                 filterCurrencies = persistentSetOf(),
@@ -100,6 +107,7 @@ class MainViewModel(
                 filterEndDate = 0,
                 onFilterClick = ::changeFilters,
             ),
+            onChangeMonthClick = ::changeSelectedMonth,
             onChangeGroupClick = ::changeGrouping,
             onChangeAppCurrencyClick = ::changeAppCurrency,
         )
@@ -147,7 +155,8 @@ class MainViewModel(
             flow2 = filters,
             flow3 = getAppCurrencyUseCase(),
             flow4 = groupBy,
-        ) { transactions, filters, appCurrency, groupBy ->
+            flow5 = getSelectedMonthUseCase(),
+        ) { transactions, filters, appCurrency, groupBy, month ->
             val filterTransactions = if (filters.all { it.value == null }) {
                 transactions
             } else {
@@ -187,18 +196,19 @@ class MainViewModel(
                 }
             }
 
-            Triple(filterTransactions, filters to groupBy, appCurrency)
+            Triple(filterTransactions, filters to groupBy, appCurrency to month)
         }
             .onEach {
-                val (transactions, filtersAndGroup, appCurrency) = it
+                val (transactions, filtersAndGroup, appCurrencyAndMonth) = it
                 val (filters, groupBy) = filtersAndGroup
+                val (appCurrency, month) = appCurrencyAndMonth
 
                 _uiState.value = _uiState.value.copy(
                     params = _uiState.value.params.copy(
                         appCurrency = appCurrency.name,
                         groupBy = groupBy,
                     ),
-                    topBarState = createUpdatedTopBarState(_uiState.value, transactions),
+                    topBarState = createUpdatedTopBarState(_uiState.value, month, transactions),
                     transactions = createTransactionItems(
                         transactions = transactions,
                         appCurrency = appCurrency,
@@ -216,9 +226,11 @@ class MainViewModel(
 
     private fun createUpdatedTopBarState(
         uiState: MainScreenState,
+        month: Int,
         transactions: List<Transaction>,
     ): MainScreenState.TopBarState {
         return uiState.topBarState.copy(
+            month = MonthNames.ENGLISH_FULL.names[month],
             transactionFiltersState = uiState.topBarState.transactionFiltersState.copy(
                 filterCategories = transactions
                     .map { it.expenseCategory.name }
@@ -301,6 +313,16 @@ class MainViewModel(
                 }
                 .toImmutableList()
         )
+    }
+
+    private fun changeSelectedMonth(value: String) {
+        viewModelScope.launch {
+            val index = MonthNames.ENGLISH_FULL.names.indexOf(value)
+
+            if (index == -1) error("Unknown month: $value")
+
+            changeSelectedMonthUseCase(month = index)
+        }
     }
 
     private fun changeGrouping(group: MainScreenState.Group) {
