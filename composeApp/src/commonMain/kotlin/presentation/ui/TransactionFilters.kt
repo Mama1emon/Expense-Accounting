@@ -20,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
@@ -30,14 +30,12 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import presentation.state.MainScreenState
 import presentation.state.MainScreenState.Filter
 
 @Composable
-fun TransactionFilters(
-    categories: ImmutableSet<String>,
-    currencies: ImmutableSet<String>,
-    onFilterClick: (Filter, String?) -> Unit
-) {
+fun TransactionFilters(state: MainScreenState.TransactionFiltersState) {
     var filter: Filter? by remember { mutableStateOf(value = null) }
 
     var category: String? by remember { mutableStateOf(value = null) }
@@ -55,12 +53,12 @@ fun TransactionFilters(
             onClick = {
                 if (category != null) {
                     category = null
-                    onFilterClick(Filter.Category, null)
+                    state.onFilterClick(Filter.Category, null)
                 } else {
                     filter = Filter.Category
                 }
             },
-            enabled = categories.isNotEmpty()
+            enabled = state.filterCategories.isNotEmpty()
         )
 
         FilterChip(
@@ -69,12 +67,12 @@ fun TransactionFilters(
             onClick = {
                 if (currency != null) {
                     currency = null
-                    onFilterClick(Filter.Currency, null)
+                    state.onFilterClick(Filter.Currency, null)
                 } else {
                     filter = Filter.Currency
                 }
             },
-            enabled = currencies.isNotEmpty()
+            enabled = state.filterCurrencies.isNotEmpty()
         )
 
         FilterChip(
@@ -89,19 +87,20 @@ fun TransactionFilters(
             onClick = {
                 if (date != null) {
                     date = null
-                    onFilterClick(Filter.Date, null)
+                    state.onFilterClick(Filter.Date, null)
                 } else {
                     filter = Filter.Date
                 }
             },
+            enabled = state.filterStartDate != 0L && state.filterEndDate != 0L
         )
     }
 
     SelectMenu(
         isExpanded = filter == Filter.Category || filter == Filter.Currency,
         items = when (filter) {
-            Filter.Category -> categories
-            Filter.Currency -> currencies
+            Filter.Category -> state.filterCategories
+            Filter.Currency -> state.filterCurrencies
             else -> persistentSetOf()
         },
         onSelect = {
@@ -111,7 +110,7 @@ fun TransactionFilters(
                 else -> Unit
             }
 
-            onFilterClick(filter!!, it)
+            state.onFilterClick(filter!!, it)
             filter = null
         },
         onDismissRequest = { filter = null }
@@ -119,11 +118,19 @@ fun TransactionFilters(
 
     if (filter == Filter.Date) {
         EaDatePickerAlert(
+            minDate = Instant
+                .fromEpochMilliseconds(state.filterStartDate)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+                .date,
+            maxDate = Instant
+                .fromEpochMilliseconds(state.filterEndDate)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+                .date,
             onDismissRequest = { filter = null },
             onConfirm = {
                 date = it
 
-                onFilterClick(
+                state.onFilterClick(
                     filter!!,
                     it
                         .atTime(0, 0)

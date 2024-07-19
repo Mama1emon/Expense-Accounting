@@ -93,11 +93,15 @@ class MainViewModel(
 
     private fun createInitTopBarState(): MainScreenState.TopBarState {
         return MainScreenState.TopBarState(
-            filterCategories = persistentSetOf(),
-            filterCurrencies = persistentSetOf(),
+            transactionFiltersState = MainScreenState.TransactionFiltersState(
+                filterCategories = persistentSetOf(),
+                filterCurrencies = persistentSetOf(),
+                filterStartDate = 0,
+                filterEndDate = 0,
+                onFilterClick = ::changeFilters,
+            ),
             onChangeGroupClick = ::changeGrouping,
             onChangeAppCurrencyClick = ::changeAppCurrency,
-            onFilterClick = ::changeFilters,
         )
     }
 
@@ -194,14 +198,7 @@ class MainViewModel(
                         appCurrency = appCurrency.name,
                         groupBy = groupBy,
                     ),
-                    topBarState = uiState.value.topBarState.copy(
-                        filterCategories = transactions
-                            .map { it.expenseCategory.name }
-                            .toImmutableSet(),
-                        filterCurrencies = transactions
-                            .map { it.amount.currency.name }
-                            .toImmutableSet(),
-                    ),
+                    topBarState = createUpdatedTopBarState(_uiState.value, transactions),
                     transactions = createTransactionItems(
                         transactions = transactions,
                         appCurrency = appCurrency,
@@ -215,6 +212,24 @@ class MainViewModel(
                 )
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun createUpdatedTopBarState(
+        uiState: MainScreenState,
+        transactions: List<Transaction>,
+    ): MainScreenState.TopBarState {
+        return uiState.topBarState.copy(
+            transactionFiltersState = uiState.topBarState.transactionFiltersState.copy(
+                filterCategories = transactions
+                    .map { it.expenseCategory.name }
+                    .toImmutableSet(),
+                filterCurrencies = transactions
+                    .map { it.amount.currency.name }
+                    .toImmutableSet(),
+                filterStartDate = transactions.minOfOrNull(Transaction::timestamp) ?: 0L,
+                filterEndDate = transactions.maxOfOrNull(Transaction::timestamp) ?: 0L,
+            ),
+        )
     }
 
     private suspend fun createTransactionItems(

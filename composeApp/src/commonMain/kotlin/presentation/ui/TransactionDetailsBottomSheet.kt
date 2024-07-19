@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import domain.appcurrency.AppCurrency
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
@@ -60,6 +61,7 @@ import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import network.chaintech.kmp_date_time_picker.utils.now
 import presentation.converters.AppCurrencyUtils
 import presentation.state.MainScreenState
 
@@ -311,6 +313,7 @@ fun TransactionDetailsBottomSheet(
 
     if (isDatePickerVisible) {
         EaDatePickerAlert(
+            maxDate = LocalDate.now(),
             onDismissRequest = { isDatePickerVisible = false },
             onConfirm = {
                 date = it.atTime(0, 0)

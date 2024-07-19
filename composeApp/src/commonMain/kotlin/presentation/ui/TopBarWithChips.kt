@@ -67,11 +67,7 @@ fun TopBarWithChips(state: MainScreenState.TopBarState, params: MainScreenState.
             }
         }
 
-        TransactionFilters(
-            categories = state.filterCategories,
-            currencies = state.filterCurrencies,
-            onFilterClick = state.onFilterClick,
-        )
+        TransactionFilters(state = state.transactionFiltersState)
     }
 
     if (isGroupingDialogExpanded) {
