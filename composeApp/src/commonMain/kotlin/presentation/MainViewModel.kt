@@ -2,42 +2,21 @@ package presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import domain.AddTransactionUseCase
-import domain.Amount
-import domain.CalculateExpensesUseCase
-import domain.ConvertCurrencyUseCase
-import domain.ExpenseCategory
-import domain.GetAllTransactionsUseCase
-import domain.Transaction
-import domain.appcurrency.AppCurrency
-import domain.appcurrency.ChangeAppCurrencyUseCase
-import domain.appcurrency.GetAppCurrencyUseCase
-import domain.selectedmonth.ChangeSelectedMonthUseCase
-import domain.selectedmonth.GetSelectedMonthUseCase
+import domain.*
+import domain.appcurrency.*
+import domain.selectedmonth.*
 import domain.transactions.ChangeTransactionUseCase
 import domain.transactions.DeleteTransactionUseCase
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentSetOf
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
+import kotlinx.datetime.*
 import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
-import presentation.converters.AppCurrencyUtils
-import presentation.converters.ExpenseCategoryUtils
-import presentation.converters.TransactionStateConverter
-import presentation.converters.name
+import presentation.converters.*
 import presentation.formatters.AmountFormatter
 import presentation.formatters.DateFormatter
 import presentation.state.MainScreenState
@@ -226,11 +205,11 @@ class MainViewModel(
 
     private fun createUpdatedTopBarState(
         uiState: MainScreenState,
-        month: Int,
+        selectedMonth: SelectedMonth,
         transactions: List<Transaction>,
     ): MainScreenState.TopBarState {
         return uiState.topBarState.copy(
-            month = MonthNames.ENGLISH_FULL.names[month - 1],
+            month = selectedMonth.fullName,
             transactionFiltersState = uiState.topBarState.transactionFiltersState.copy(
                 filterCategories = transactions
                     .map { it.expenseCategory.name }
@@ -317,11 +296,9 @@ class MainViewModel(
 
     private fun changeSelectedMonth(value: String) {
         viewModelScope.launch {
-            val index = MonthNames.ENGLISH_FULL.names.indexOf(value)
-
-            if (index == -1) error("Unknown month: $value")
-
-            changeSelectedMonthUseCase(month = index + 1)
+            changeSelectedMonthUseCase(
+                selectedMonth = SelectedMonth(fullName = value)
+            )
         }
     }
 

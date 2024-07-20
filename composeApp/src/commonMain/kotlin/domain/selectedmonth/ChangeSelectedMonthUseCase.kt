@@ -12,9 +12,9 @@ class ChangeSelectedMonthUseCase(
     private var preferencesStore: DataStore<Preferences>,
 ) {
 
-    suspend operator fun invoke(month: Int) {
+    suspend operator fun invoke(selectedMonth: SelectedMonth) {
         preferencesStore.edit {
-            it[PreferencesKeys.SELECTED_MONTH] = month
+            it[PreferencesKeys.SELECTED_MONTH] = selectedMonth.number
         }
     }
 }
