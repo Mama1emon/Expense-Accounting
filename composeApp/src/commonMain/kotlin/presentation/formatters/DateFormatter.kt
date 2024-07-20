@@ -30,7 +30,7 @@ object DateFormatter {
 
         return when (difference.inWholeDays) {
             0L -> "Today"
-            1L -> "Tomorrow"
+            1L -> "Yesterday"
             else -> format.format(past.toLocalDateTime(TimeZone.currentSystemDefault()))
         }
     }

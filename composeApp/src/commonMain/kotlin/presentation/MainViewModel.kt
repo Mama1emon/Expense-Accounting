@@ -230,7 +230,7 @@ class MainViewModel(
         transactions: List<Transaction>,
     ): MainScreenState.TopBarState {
         return uiState.topBarState.copy(
-            month = MonthNames.ENGLISH_FULL.names[month],
+            month = MonthNames.ENGLISH_FULL.names[month - 1],
             transactionFiltersState = uiState.topBarState.transactionFiltersState.copy(
                 filterCategories = transactions
                     .map { it.expenseCategory.name }
@@ -321,7 +321,7 @@ class MainViewModel(
 
             if (index == -1) error("Unknown month: $value")
 
-            changeSelectedMonthUseCase(month = index)
+            changeSelectedMonthUseCase(month = index + 1)
         }
     }
 

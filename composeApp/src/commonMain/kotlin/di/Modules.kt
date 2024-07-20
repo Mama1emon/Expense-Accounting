@@ -32,7 +32,12 @@ object Modules {
     val dataModule = module {
         single { getPreferenceStore() }
 
-        single { TransactionsRepositoryImpl(transactionsStore = getTransactionsStore()) }
+        single {
+            TransactionsRepositoryImpl(
+                transactionsStore = getTransactionsStore(),
+                preferencesDataStore = get(),
+            )
+        }
             .bind<TransactionsRepository>()
 
         single { AppCurrencyRepositoryImpl(appCurrencyStore = getAppCurrencyStore()) }
