@@ -1,8 +1,6 @@
 package presentation.state
 
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.ImmutableSet
-import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.*
 
 /**
  * @author Andrew Khokhlov on 11/07/2024
@@ -19,10 +17,10 @@ data class MainScreenState(
         val appCurrency: String,
         val availableAppCurrencies: ImmutableSet<String>,
         val groupBy: Group,
+        val selectedMonth: String,
     )
 
     data class TopBarState(
-        val month: String,
         val availableMonths: ImmutableSet<String>,
         val transactionFiltersState: TransactionFiltersState,
         val onChangeMonthClick: (String) -> Unit,
@@ -71,6 +69,7 @@ data class MainScreenState(
         ) -> Unit,
         val onChangeTransactionClick: (TransactionItemState.Transaction) -> Unit,
         val onDeleteClick: (String) -> Unit,
+        val onChangeMonthClick: (String) -> Unit,
     )
 
     data class SummaryState(

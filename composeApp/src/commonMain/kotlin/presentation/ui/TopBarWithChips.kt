@@ -1,28 +1,16 @@
 package presentation.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.rounded.CurrencyExchange
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableSet
 import presentation.state.MainScreenState
@@ -47,7 +35,7 @@ fun TopBarWithChips(state: MainScreenState.TopBarState, params: MainScreenState.
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AnimatedContent(targetState = state.month) {
+            AnimatedContent(targetState = params.selectedMonth) {
                 ClickableText(
                     text = buildAnnotatedString {
                         append("Expense")
@@ -94,7 +82,7 @@ fun TopBarWithChips(state: MainScreenState.TopBarState, params: MainScreenState.
     if (isMonthsDialogExpanded) {
         SelectAlert(
             title = "Select month",
-            select = state.month,
+            select = params.selectedMonth,
             items = state.availableMonths,
             onSelect = state.onChangeMonthClick,
             onDismissRequest = { isMonthsDialogExpanded = false },

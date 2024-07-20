@@ -3,64 +3,25 @@ package presentation.ui
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.AttachMoney
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CurrencyRuble
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.EuroSymbol
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import domain.appcurrency.AppCurrency
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atTime
-import kotlinx.datetime.format
-import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.format.Padding
-import kotlinx.datetime.format.char
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
+import domain.selectedmonth.SelectedMonth
+import kotlinx.datetime.*
+import kotlinx.datetime.format.*
 import network.chaintech.kmp_date_time_picker.utils.now
 import presentation.converters.AppCurrencyUtils
 import presentation.state.MainScreenState
@@ -71,6 +32,7 @@ fun TransactionDetailsBottomSheet(
     state: MainScreenState.TransactionDetailsState,
     params: MainScreenState.BaseParams,
     transaction: MainScreenState.TransactionItemState.Transaction?,
+    onSnackbarShow: (SnackbarVisuals, (SnackbarResult) -> Unit) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     var currency by remember {
@@ -78,7 +40,9 @@ fun TransactionDetailsBottomSheet(
     }
     var category: String? by remember { mutableStateOf(value = transaction?.category) }
 
-    var date: Long? by remember { mutableStateOf(value = transaction?.timestamp) }
+    var date: Long? by remember {
+        mutableStateOf(value = transaction?.timestamp ?: Clock.System.now().toEpochMilliseconds())
+    }
 
     var isCategoryMenuExpanded by remember { mutableStateOf(value = false) }
     var isCurrencyMenuExpanded by remember { mutableStateOf(value = false) }
@@ -95,7 +59,6 @@ fun TransactionDetailsBottomSheet(
         var amount by remember { mutableStateOf(transaction?.primaryAmount?.toString().orEmpty()) }
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -277,6 +240,25 @@ fun TransactionDetailsBottomSheet(
                         )
                     } else {
                         state.onAddTransactionClick(name, category!!, amount, currency, date!!)
+                    }
+
+                    val inputDate = Instant.fromEpochMilliseconds(date!!)
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                        .let { SelectedMonth(it.monthNumber).fullName }
+
+                    if (params.selectedMonth != inputDate) {
+                        onSnackbarShow(
+                            object : SnackbarVisuals {
+                                override val actionLabel = "See"
+                                override val duration = SnackbarDuration.Long
+                                override val message = "Transaction was added to another month"
+                                override val withDismissAction: Boolean = false
+                            }
+                        ) {
+                            if (it == SnackbarResult.ActionPerformed) {
+                                state.onChangeMonthClick(inputDate)
+                            }
+                        }
                     }
                 },
                 modifier = Modifier

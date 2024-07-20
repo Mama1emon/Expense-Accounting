@@ -72,12 +72,12 @@ class MainViewModel(
                 .map(AppCurrency::name)
                 .toImmutableSet(),
             groupBy = groupBy.value,
+            selectedMonth = "",
         )
     }
 
     private fun createInitTopBarState(): MainScreenState.TopBarState {
         return MainScreenState.TopBarState(
-            month = "",
             availableMonths = MonthNames.ENGLISH_FULL.names.toImmutableSet(), // TODO
             transactionFiltersState = MainScreenState.TransactionFiltersState(
                 filterCategories = persistentSetOf(),
@@ -116,7 +116,8 @@ class MainViewModel(
                 .toImmutableSet(),
             onAddTransactionClick = ::addTransaction,
             onChangeTransactionClick = ::changeTransaction,
-            onDeleteClick = ::deleteTransaction
+            onDeleteClick = ::deleteTransaction,
+            onChangeMonthClick = ::changeSelectedMonth,
         )
     }
 
@@ -186,8 +187,9 @@ class MainViewModel(
                     params = _uiState.value.params.copy(
                         appCurrency = appCurrency.name,
                         groupBy = groupBy,
+                        selectedMonth = month.fullName,
                     ),
-                    topBarState = createUpdatedTopBarState(_uiState.value, month, transactions),
+                    topBarState = createUpdatedTopBarState(_uiState.value, transactions),
                     transactions = createTransactionItems(
                         transactions = transactions,
                         appCurrency = appCurrency,
@@ -205,11 +207,9 @@ class MainViewModel(
 
     private fun createUpdatedTopBarState(
         uiState: MainScreenState,
-        selectedMonth: SelectedMonth,
         transactions: List<Transaction>,
     ): MainScreenState.TopBarState {
         return uiState.topBarState.copy(
-            month = selectedMonth.fullName,
             transactionFiltersState = uiState.topBarState.transactionFiltersState.copy(
                 filterCategories = transactions
                     .map { it.expenseCategory.name }
